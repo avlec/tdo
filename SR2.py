@@ -3,11 +3,13 @@ import time
 import threading
 import CONN2
 
+
 class PortHandler:
     def __init__(self):
         self.port = []
         for i in range(20000, 10000, -1):
             self.port.append(i)
+
 
 def inbound_connection_handler(port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -25,6 +27,7 @@ def inbound_connection_handler(port):
         print (data.decode())
         # add timeout in 10 mins?
     s.close()
+
 
 def outbound_connection_handler(port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -55,9 +58,9 @@ while True:
     k =str(p1)+"|"+str(p2)
     clientsocket.send(k.encode('ascii'))
 
-    #starting threads to manage connection
-    #threading._start_new_thread(outbound_connection_handler, (p1,))
-    #threading._start_new_thread(inbound_connection_handler, (p2,))
+    # starting threads to manage connection
+    # threading._start_new_thread(outbound_connection_handler, (p1,))
+    # threading._start_new_thread(inbound_connection_handler, (p2,))
 
 
     clientsocket.close()
