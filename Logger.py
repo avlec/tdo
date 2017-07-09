@@ -18,10 +18,14 @@ class Logger():
     #   str write_path: used to direct file output of logger
     def __init__(self, write_path):
         if not Logger.instance:
-            if write_path:
-                Logger.instance = Logger.__Logger(write_path)
-            else:
-                Logger.instance = Logger.__Logger('logfile.txt')
+            Logger.instance = Logger.__Logger(write_path)
 
     def __getattr__(self, name):
         return getattr(self.instance, name)
+
+    def log(self, msg, status):
+        if not status:
+            status = "Unspecified"
+        with open(self.instance.write_path, 'a+') as out_stream:
+            out_stream.write("%s: %s" % (status, msg))
+            out_stream.close()
