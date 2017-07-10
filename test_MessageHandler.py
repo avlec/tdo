@@ -10,6 +10,6 @@ class TestMessageHandlerMethods(unittest.TestCase):
 
     def tearDown(self):
         pass
-    
+
     def test_creation(self):
         pass
