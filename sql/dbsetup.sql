@@ -1,7 +1,5 @@
-DROP TABLE users;
-
-CREATE TABLE USERS (ID INTEGER PRIMARY KEY NOT NULL,
+CREATE TABLE USERS (ID serial PRIMARY KEY,
                     NAME VARCHAR(32) NOT NULL,
+                    PASSPHRASE CHARACTER(64),
                     SALT CHARACTER(16),
-                    PASSPHRASE VARCHAR(32),
                     IPADDRESS VARCHAR(15));
