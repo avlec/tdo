@@ -3,8 +3,8 @@ machine:
     version: 2.7.13
 
 dependencies:
-  post:
-    - python ./install-packages
+  pre:
+    - pip install psycopg2
 
 database:
   override:
