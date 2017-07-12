@@ -1,0 +1,11 @@
+machine:
+  python:
+    version: 2.7.13
+
+dependencies:
+  post:
+    - python ./install-packages
+
+database:
+  override:
+    - postgres -u 

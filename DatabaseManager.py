@@ -17,8 +17,14 @@ class DatabaseManager:
     def lookup(self):
         pass
 
+    def write(self, data):
+        # determine what kind of object is
+        # send it to the appropriate write method
+        pass
+
     # for writing a user to the DB
-    def write_user(self, (name, passphrase, salt, ip)):
-        self.cursor.execute('''INSERT INTO USERS (name, passphrase, salt, ipaddress)
-                               VALUES (%s, %s, %s, %s);''', (name, passphrase, salt, ip))
+    def write_user(self, data):
+        (salt, alias, passphrase) = data
+        self.cursor.execute('''INSERT INTO USERS (salt, alias, passphrase)
+                               VALUES (%s, %s, %s);''', (salt, alias, passphrase))
         self.connection.commit()
