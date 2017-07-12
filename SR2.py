@@ -1,7 +1,6 @@
 import socket
 import time
 import threading
-import CONN2
 
 
 class PortHandler:
@@ -12,35 +11,37 @@ class PortHandler:
 
 
 def inbound_connection_handler(port):
+    print("inbound port is :" + str(port) + "\n")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = socket.gethostname()
     addr = (host, port)
     s.connect(addr)
-    s.bind(addr)
-    s.listen(3)
     while True:
         # Receiving from client
-        data = s.recv(1024)
+        try:
+            data = s.recv(1024)
+        except socket.error:
+            print("user " + str(port) + " disconnected")
+            break
         if not data:
             break
         # insert command parser here and check if the client sent command
-        print (data.decode())
+        print (str(port)+":"+data.decode())
         # add timeout in 10 mins?
     s.close()
-
+    
 
 def outbound_connection_handler(port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print("outbound port is :" + str(port) + "\n")
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = socket.gethostname()
-    addr = (host, port)
-    s.connect(addr)
+    server_socket.bind((host, port))
+    server_socket.listen(2)
     while True:
-        msg = input('alias:')
-        # encodes message
-        # msg = MSG_id + '|' + C.id + '|' +C.currentChannel + '|'+ userinput
-        msg = bytes(msg, encoding='utf8')
-        s.send(msg)
-        print("hello")
+        clientsocket,addr = server_socket.accept()
+        welcome = "welcome to TDO communication server"
+        clientsocket.send(welcome.encode('utf8'))
+    clientsocket.close()
 
 
 handler = PortHandler()
@@ -56,11 +57,11 @@ while True:
     p2 = handler.port.pop()
     # sending the client the information on ports used
     k =str(p1)+"|"+str(p2)
-    clientsocket.send(k.encode('ascii'))
+    clientsocket.send(k.encode('utf8'))
 
     # starting threads to manage connection
-    # threading._start_new_thread(outbound_connection_handler, (p1,))
-    # threading._start_new_thread(inbound_connection_handler, (p2,))
-
+    
+    threading._start_new_thread(outbound_connection_handler, (p1,))
+    threading._start_new_thread(inbound_connection_handler, (p2,))
 
     clientsocket.close()
