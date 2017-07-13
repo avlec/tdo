@@ -4,6 +4,10 @@ machine:
   services:
     - postgresql
 
+dependencies:
+  override:
+    - pip install --no-binary psycopg2
+
 database:
   override:
     - createdb tdo
