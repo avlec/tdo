@@ -2,22 +2,12 @@ import socket
 import sys
 import threading
 import CommonUtil
+import functools
 
-
-# ----------------------------------------------------------------------------------------------------------------------------------
-# database interface and data object classes(every data item has a class)
-# ----------------------------------------------------------------------------------------------------------------------------------
-class PortHandler:
-    def __init__(self):
-        self.port = []
-        for i in range(20000, 10000, -1):
-            self.port.append(i)
-
-
-def print_message(port,data):
-    print (str(port)+":"+data.decode())
 def welcome_message():
-    return ""
+    data = CommonUtil.Message.pack('0000000000000000', '0000000000000000','0000000000000000',"welcome to TDO communication services").encode('utf8')
+    port = 0
+    return CommonUtil.Message(data,port)
 
 # currently a clusterfuck, todo and implement with db
 class MessageGroup:
@@ -67,31 +57,48 @@ class MessageGroup:
 
 class Server:
     def __init__(self):
-        self.Outbound = CommonUtil.Queue()
+        self.Outbound = {}
         self.Inbound = CommonUtil.Queue()
         self.Error = CommonUtil.Queue()
         self.MessageGroupList = MessageGroup()
-        self.Main = CommonUtil.Connection()
-        threading._start_new_thread(self.proccessor(), (self,))
+        self.handler = self.PortHandler()
 
 
-    def enqueue(self, data):
+    class PortHandler:
+        def __init__(self):
+            self.port = []
+            for i in range(20000, 10000, -1):
+                self.port.append(i)
+    @staticmethod
+    def send(server, p):
+        msg = server.Outbound[p].Pop()
+        if msg:
+            return msg.packmessage()
+
+    def enqueue(self, port, data):
         def validate(data):
             pass
 
-        def enqueue(message):
+        def enqueue(self, message):
             self.Inbound.Push(message)
 
+        def dequeue(self):
+            msg = self.Inbound.Pop()
+            for key in self.Outbound:
+                self.Outbound[key].Push(msg)
+
         validate(data)
-        msg = CommonUtil.Message(data)
-        enqueue(msg)
+        print (str(port)+":"+data.decode())
+        msg = CommonUtil.Message(data, port)
+        enqueue(self, msg)
+        dequeue(self)#temp method, will move somewhere, do it independantly on a loop in thread
 
 
 
 
 
 if __name__ == "__main__":
-    handler = PortHandler()
+    server = Server()
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = socket.gethostname()
     port = 9999
@@ -100,15 +107,16 @@ if __name__ == "__main__":
     while True:
         clientsocket,addr = server_socket.accept()
         print("Got a connection from %s" % str(addr))
-        p1 = handler.port.pop()
-        p2 = handler.port.pop()
+        p1 = server.handler.port.pop()
+        p2 = server.handler.port.pop()
         # sending the client the information on ports used
         k =str(p1)+"|"+str(p2)
         clientsocket.send(k.encode('utf8'))
 
         # starting threads to manage connection
-
-        threading._start_new_thread(CommonUtil.outbound_connection_handler, (p1,welcome_message,))
-        threading._start_new_thread(CommonUtil.inbound_connection_handler, (p2,print_message,))
+        server.Outbound[p1] = CommonUtil.Queue()
+        server.Outbound[p1].Push(welcome_message())
+        threading._start_new_thread(CommonUtil.outbound_connection_handler, (p1, functools.partial(server.send, server),))
+        threading._start_new_thread(CommonUtil.inbound_connection_handler, (p2, functools.partial(server.enqueue, server),))
 
         clientsocket.close()

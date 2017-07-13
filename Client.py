@@ -10,20 +10,22 @@ import CommonUtil
 
 class Client:
     def __init__(self):
-        self.id = None
-        self.currentChannel = None
+        self.id = CommonUtil.createID()
+        self.currentChannel = CommonUtil.createID()
 
     def chat_client(self):
         pass
 
-def get_input():
-    msg = raw_input('alias:')
-    return msg
+    def get_input(self,p):
+        msg = raw_input()
+        return CommonUtil.Message.pack(CommonUtil.createID(), self.id, self.currentChannel, msg)
 
-def print_byte(port,data):
-    print(data.decode())
+def print_byte(data):
+    msg = CommonUtil.Message(data,0)
+    print msg.message
 
 if __name__ == "__main__":
+    C = Client()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = socket.gethostname()
     port = 9999
@@ -36,7 +38,7 @@ if __name__ == "__main__":
     print("my port is " + p1 + " and " + p2)
 
     threading._start_new_thread(CommonUtil.inbound_connection_handler, (int(p2),print_byte,))
-    threading._start_new_thread(CommonUtil.outbound_connection_handler, (int(p1),get_input,))
+    threading._start_new_thread(CommonUtil.outbound_connection_handler, (int(p1),C.get_input,))
     while True:
         pass
     sys.exit(0)
