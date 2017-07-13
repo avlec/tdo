@@ -5,50 +5,51 @@ import CommonUtil
 import functools
 
 def welcome_message():
-    data = CommonUtil.Message.pack('0000000000000000', '0000000000000000','0000000000000000',"welcome to TDO communication services").encode('utf8')
-    port = 0
-    return CommonUtil.Message(data,port)
+    data = CommonUtil.Message.pack('0000000000000000', '0000000000000000','server', '0000000000000000', "welcome to TDO communication services").encode('utf8')
+    return CommonUtil.Message(data)
 
-# currently a clusterfuck, todo and implement with db
-class MessageGroup:
-    class Channel:
-        @staticmethod
-        def is_permissions(permissions):
-            if permissions:
-                return True
-            elif False:  # insert regex to check that its a bitstring length 3
-                pass
-            else:
-                return False
+class user:
+    def __init__(self, alias, userid, inport,outport):
+        self.alias = alias
+        self.id = userid
+        self.inport = inport
+        self.outport = outport
+        self.password ='password123'
+        self.currentchannel='0000000000000000'
 
-        def __init__(self, name, permissions):
+# todo implement DB connection
+class Channel:
+    @staticmethod
+    def is_permissions(permissions):
+        if permissions:
+            return True
+        elif False:  # insert regex to check that its a bitstring length 3
+            pass
+        else:
+            return False
+
+    def __init__(self, name, permissions):
+        self.name = name
+        if name == 'General':
+            self.id = '0000000000000000'
+        else:
             self.id = CommonUtil.createID()
-            self.name = name
-            self.users = []
-            if self.is_permissions(permissions):
-                self.default_permissions = permissions
-            else:
-                self.default_permissions = '011'
 
-        def change_default_permisions(self, permissions):
-            if self.is_permissions(permissions):
-                self.default_permissions = permissions
-            else:
-                pass
-                #send error
+        #users should be a table in future
+        self.users = []
+        if self.is_permissions(permissions):
+            self.default_permissions = permissions
+        else:
+            self.default_permissions = '011'
 
-        def add_user(self, user):
-            self.users.append(user)
+    def change_default_permisions(self, permissions):
+        if self.is_permissions(permissions):
+            self.default_permissions = permissions
+        else:
+            pass
 
-    def __init__(self):
-        self.size = 0
-        self.client_list = []
-        self.message_groups = []
-        self.message_groups.append(self.Channel("general", None))
-
-    def addClient(self, new):
-        self.client_list.append(new)
-        self.message_groups[0].add_user(new)
+    def add_user(self, user):
+        self.users.append(user)
 
 
 # ----------------------------------------------------------------------------------------------------------------------------------
@@ -60,23 +61,24 @@ class Server:
         self.Outbound = {}
         self.Inbound = CommonUtil.Queue()
         self.Error = CommonUtil.Queue()
-        self.MessageGroupList = MessageGroup()
+        self.Channels = []
+        self.Channels.append(Channel('General', '011'))
         self.handler = self.PortHandler()
-
-
+        self.users = []
     class PortHandler:
         def __init__(self):
             self.port = []
             for i in range(20000, 10000, -1):
                 self.port.append(i)
+
     @staticmethod
-    def send(server, p):
-        msg = server.Outbound[p].Pop()
+    def send(s, p):
+        msg = s.Outbound[p].Pop()
         if msg:
             return msg.packmessage()
 
-    def enqueue(self, port, data):
-        def validate(data):
+    def enqueue(self, p, d):
+        def validate(d):
             pass
 
         def enqueue(self, message):
@@ -84,14 +86,17 @@ class Server:
 
         def dequeue(self):
             msg = self.Inbound.Pop()
-            for key in self.Outbound:
-                self.Outbound[key].Push(msg)
+            for u in self.users:
+                print "user id:" +u.id + "message sender id:"+msg.messageSenderId
+                if u.id != msg.messageSenderId and u.currentchannel == msg.messageChannelId:
+                    self.Outbound[u.inport].Push(msg)
 
-        validate(data)
-        print (str(port)+":"+data.decode())
-        msg = CommonUtil.Message(data, port)
+
+        validate(d)
+        print (str(p)+":"+d.decode())
+        msg = CommonUtil.Message(d)
         enqueue(self, msg)
-        dequeue(self)#temp method, will move somewhere, do it independantly on a loop in thread
+        dequeue(self)  # temp method, will move somewhere, do it independently on a loop in thread
 
 
 
@@ -105,18 +110,19 @@ if __name__ == "__main__":
     server_socket.bind((host, port))
     server_socket.listen(10)
     while True:
-        clientsocket,addr = server_socket.accept()
+        clientsocket, addr = server_socket.accept()
         print("Got a connection from %s" % str(addr))
         p1 = server.handler.port.pop()
         p2 = server.handler.port.pop()
-        # sending the client the information on ports used
-        k =str(p1)+"|"+str(p2)
-        clientsocket.send(k.encode('utf8'))
+        newuserid=CommonUtil.createID()
 
+        # sending the client the information on ports used
+        k = str(newuserid) + "|" + str(p1)+"|"+str(p2)
+        clientsocket.send(k.encode('utf8'))
         # starting threads to manage connection
         server.Outbound[p1] = CommonUtil.Queue()
         server.Outbound[p1].Push(welcome_message())
+        server.users.append(user('', newuserid, p1, p2))
         threading._start_new_thread(CommonUtil.outbound_connection_handler, (p1, functools.partial(server.send, server),))
         threading._start_new_thread(CommonUtil.inbound_connection_handler, (p2, functools.partial(server.enqueue, server),))
-
         clientsocket.close()

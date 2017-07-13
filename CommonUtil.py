@@ -5,19 +5,20 @@ import string
 # utility classes, Message, Queue, connection error
 # ----------------------------------------------------------------------------------------------------------------------------------
 # message class used to process messages
-# format: message id|message sender id|message channel id|message
+# format: message id|message sender id|sender alias|message channel id|message
 # ids are 16 digits, message is limited to 256 characters
-# sample: 0000000000000000|0000000000000000|0000000000000000|Hello world
+# sample: 0000000000000000|0000000000000000|server|0000000000000000|Hello world
 
 #alec redo to xml if you feel like it, but make function in to pack and unpack to this class
 class Message:
-    def __init__(self, data,port):
+    def __init__(self, data):
+        self.data = data
         inputList = data.decode().split('|')
         self.messageId = inputList[0]
         self.messageSenderId = inputList[1]
-        self.messageChannelId = inputList[2]
-        self.message = inputList[3]
-        self.port = port
+        self.senderAlias = inputList[2]
+        self.messageChannelId = inputList[3]
+        self.message = inputList[4]
         self.validate()
 
     # someone do this
@@ -26,11 +27,11 @@ class Message:
 
     # pack class used to send a message in this format
     @staticmethod
-    def pack(messageId,messageSenderId,messageChannelId,message):
-        return messageId + '|' + messageSenderId + '|' + messageChannelId + '|'+ message
+    def pack(messageId ,messageSenderId ,senderAlias, messageChannelId, message):
+        return messageId + '|' + messageSenderId + '|' + senderAlias + '|' + messageChannelId + '|' + message
 
     def packmessage(self):
-        return self.messageId + '|' + self.messageSenderId + '|' + self.messageChannelId + '|'+ self.message
+        return self.messageId + '|' + self.messageSenderId + '|' + self.senderAlias + '|' + self.messageChannelId + '|' + self.message
 
 # Queue class used for storing messages during processing.
 class Queue:
@@ -55,7 +56,7 @@ class connection_error(Exception):
 # ----------------------------------------------------------------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------------------------------------------------------------
-# Utillity functions: connection handlers
+# Utility functions: connection handlers
 # ----------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -89,4 +90,3 @@ def inbound_connection_handler(port, handler):
 
 def createID():
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16))
-
