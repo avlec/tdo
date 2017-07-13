@@ -21,9 +21,9 @@ class DatabaseManager:
 
     def lookup(self, type, identifier):
         if type == 'user':
-            return self.lookup_query('USERS','ALIAS', identifier)
+            return self.lookup_query('tdo.public.users','ALIAS', identifier)
         elif type == 'chatroom':
-            return self.lookup_query('CHATROOMS', 'NAME', identifier)
+            return self.lookup_query('tdo.public.chatrooms', 'NAME', identifier)
         elif type == '':
             pass
         return None
@@ -36,6 +36,6 @@ class DatabaseManager:
     # for writing a user to the DB
     def write_user(self, data):
         (salt, alias, passphrase) = data
-        self.cursor.execute('''INSERT INTO USERS (salt, alias, pass)
+        self.cursor.execute('''INSERT INTO tdo.public.users (salt, alias, pass)
                                VALUES (%s, %s, %s);''', (salt, alias, passphrase))
         self.connection.commit()
