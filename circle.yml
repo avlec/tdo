@@ -11,7 +11,7 @@ dependencies:
 database:
   override:
     - createdb tdo
-    - echo "CREATE TABLE USERS (SALT CHARACTER(16) PRIMARY KEY, ALIAS VARCHAR(16) NOT NULL, PASS CHARACTER(64));" | psql -U postgres
+    - echo "CREATE TABLE tdo.public.USERS (SALT CHARACTER(16) PRIMARY KEY, ALIAS VARCHAR(16) NOT NULL, PASS CHARACTER(64));" | psql -U postgres
     - echo "CREATE ROLE api WITH UNENCRYPTED PASSWORD 'password';" | psql -U postgres
     - echo "ALTER ROLE api WITH LOGIN;" | psql -U postgres
     - echo "GRANT SELECT, UPDATE, INSERT, DELETE ON ALL TABLES IN SCHEMA public TO api;" | psql -U postgres
