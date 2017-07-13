@@ -1,6 +1,8 @@
+import binascii
+import hashlib
 import unittest
-import hashlib, binascii
-from DatabaseManager import DatabaseManager
+
+from database.DatabaseManager import DatabaseManager
 
 
 class TestDatabaseManager(unittest.TestCase):
@@ -9,7 +11,7 @@ class TestDatabaseManager(unittest.TestCase):
     # test_user_data = None
 
     def setUp(self):
-        self.dbm = DatabaseManager('postgres', 'mDmLfpPcTjwG7KJ4')
+        self.dbm = DatabaseManager('api', 'password')
         self.test_user_data = (
                 '0123456789abcdef',
                 'alec',
@@ -21,10 +23,10 @@ class TestDatabaseManager(unittest.TestCase):
     def test_write_user(self):
         self.dbm.write_user(self.test_user_data)
         self.dbm.cursor.execute('''SELECT * FROM USERS
-                            WHERE salt=%s AND alias=%s AND passphrase=%s;''', self.test_user_data)
+                            WHERE salt=%s AND alias=%s AND pass=%s;''', self.test_user_data)
         self.assertEqual(self.test_user_data[1:], self.dbm.cursor.fetchone()[1:])
         # remove entry
         self.dbm.cursor.execute('''DELETE FROM USERS
-                            WHERE salt=%s AND alias=%s AND passphrase=%s;''', self.test_user_data)
+                            WHERE salt=%s AND alias=%s AND pass=%s;''', self.test_user_data)
         self.dbm.connection.commit()
 

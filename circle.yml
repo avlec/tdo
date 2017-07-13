@@ -1,11 +1,14 @@
 machine:
   python:
     version: 2.7.13
-
-dependencies:
-  pre:
-    - pip install psycopg2
+  services:
+    - postgresql
 
 database:
   override:
-    - postgres -u 
+    - createdb tdo
+    - echo "CREATE TABLE USERS (SALT CHARACTER(16) PRIMARY KEY, ALIAS VARCHAR(16) NOT NULL, PASS CHARACTER(64));" | psql -U postgres
+    - echo "CREATE ROLE api WITH UNENCRYPTED PASSWORD 'password';" | psql -U postgres
+    - echo "ALTER ROLE api WITH LOGIN;" | psql -U postgres
+    - echo "GRANT SELECT, UPDATE, INSERT, DELETE ON ALL TABLES IN SCHEMA public TO api;" | psql -U postgres
+    - echo "GRANT CREATE, CONNECT ON DATABASE tdo TO api;" | psql -U postgres
