@@ -4,9 +4,11 @@ import threading
 import CommonUtil
 import functools
 
+
 def welcome_message():
     data = CommonUtil.Message.pack('0000000000000000', '0000000000000000','server', '0000000000000000', "welcome to TDO communication services").encode('utf8')
     return CommonUtil.Message(data)
+
 
 class user:
     def __init__(self, alias, userid, inport,outport):
@@ -86,23 +88,19 @@ class Server:
 
         def dequeue(self):
             msg = self.Inbound.Pop()
+            print(msg.packmessage())
             for u in self.users:
-                print "user id:" +u.id + "message sender id:"+msg.messageSenderId
                 if u.id != msg.messageSenderId and u.currentchannel == msg.messageChannelId:
                     self.Outbound[u.inport].Push(msg)
 
 
         validate(d)
-        print (str(p)+":"+d.decode())
         msg = CommonUtil.Message(d)
         enqueue(self, msg)
         dequeue(self)  # temp method, will move somewhere, do it independently on a loop in thread
 
 
-
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     server = Server()
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = socket.gethostname()
@@ -111,13 +109,13 @@ if __name__ == "__main__":
     server_socket.listen(10)
     while True:
         clientsocket, addr = server_socket.accept()
-        print("Got a connection from %s" % str(addr))
+        print('Got a connection from %s' % str(addr))
         p1 = server.handler.port.pop()
         p2 = server.handler.port.pop()
         newuserid=CommonUtil.createID()
 
         # sending the client the information on ports used
-        k = str(newuserid) + "|" + str(p1)+"|"+str(p2)
+        k = str(newuserid) + '|' + str(p1)+'|'+str(p2)
         clientsocket.send(k.encode('utf8'))
         # starting threads to manage connection
         server.Outbound[p1] = CommonUtil.Queue()

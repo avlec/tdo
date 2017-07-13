@@ -28,7 +28,7 @@ def print_byte(data):
     msg = CommonUtil.Message(data)
     print msg.senderAlias + ':' + msg.message
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     C = Client()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = socket.gethostname()
@@ -36,11 +36,11 @@ if __name__ == "__main__":
     addr = (host, port)
     s.connect(addr)
     connection_port = s.recv(1024)
-    ports = connection_port.decode('utf8').split("|")
+    ports = connection_port.decode('utf8').split('|')
     p1 = ports.pop()
     p2 = ports.pop()
     C.id = ports.pop()
-    print("my port is " + p1 + " and " + p2)
+    print('my port is ' + p1 + '' and '' + p2)
     threading._start_new_thread(CommonUtil.inbound_connection_handler, (int(p2),print_byte,))
     threading._start_new_thread(CommonUtil.outbound_connection_handler, (int(p1),C.get_input,))
     while True:
