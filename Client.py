@@ -4,7 +4,7 @@ import sys
 import CommonUtil
 import random
 import string
-
+import time
 # format: message id|message sender id|sender alias|message channel id|message
 # ids are 16 digits, message is limited to 256 characters
 # sample: 0000000000000000|0000000000000000|server|0000000000000000|Hello world
@@ -41,8 +41,11 @@ if __name__ == '__main__':
     p2 = ports.pop()
     C.id = ports.pop()
     print('my port is ' + p1 + '' and '' + p2)
+    threading._start_new_thread(CommonUtil.outbound_connection_handler, (int(p1), C.get_input,))
+    time.sleep(0.05)
     threading._start_new_thread(CommonUtil.inbound_connection_handler, (int(p2),print_byte,))
-    threading._start_new_thread(CommonUtil.outbound_connection_handler, (int(p1),C.get_input,))
+
+
     while True:
         pass
     sys.exit(0)

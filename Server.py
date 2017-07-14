@@ -3,7 +3,7 @@ import sys
 import threading
 import CommonUtil
 import functools
-
+import time
 
 def welcome_message():
     data = CommonUtil.Message.pack('0000000000000000', '0000000000000000','server', '0000000000000000', "welcome to TDO communication services").encode('utf8')
@@ -122,5 +122,6 @@ if __name__ == '__main__':
         server.Outbound[p1].Push(welcome_message())
         server.users.append(user('', newuserid, p1, p2))
         threading._start_new_thread(CommonUtil.outbound_connection_handler, (p1, functools.partial(server.send, server),))
+        time.sleep(0.05)
         threading._start_new_thread(CommonUtil.inbound_connection_handler, (p2, functools.partial(server.enqueue, server),))
         clientsocket.close()
