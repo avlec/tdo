@@ -6,16 +6,10 @@ from database.DatabaseManager import DatabaseManager
 
 
 class TestDatabaseManager(unittest.TestCase):
-
-    # dbm = None
-    # test_user_data = None
-
     def setUp(self):
         self.dbm = DatabaseManager('api', 'password')
-        self.test_user_data = (
-                '0123456789abcdef',
-                'alec',
-                binascii.hexlify(hashlib.pbkdf2_hmac('sha256',b'aleciscool',b'0123456789abcdef', 10000)) )
+        hashed_pass = binascii.hexlify(hashlib.pbkdf2_hmac('sha256',b'aleciscool',b'0123456789abcdef', 10000))
+        self.test_user_data = ('0123456789abcdef', 'alec', hashed_pass)
 
     def tearDown(self):
         pass
