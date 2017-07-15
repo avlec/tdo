@@ -1,6 +1,8 @@
-import socket
 import random
+import socket
 import string
+
+
 # ----------------------------------------------------------------------------------------------------------------------------------
 # utility classes, Message, Queue, connection error
 # ----------------------------------------------------------------------------------------------------------------------------------
@@ -10,29 +12,6 @@ import string
 # sample: 0000000000000000|0000000000000000|server|0000000000000000|Hello world
 
 #alec redo to xml if you feel like it, but make function in to pack and unpack to this class
-class Message:
-    def __init__(self, data):
-        self.data = data
-        inputList = data.decode().split('|')
-        self.messageId = inputList[0]
-        self.messageSenderId = inputList[1]
-        self.senderAlias = inputList[2]
-        self.messageChannelId = inputList[3]
-        self.message = inputList[4]
-        self.validate()
-
-    # someone do this
-    def validate(self):
-        pass
-
-    # pack class used to send a message in this format
-    @staticmethod
-    def pack(messageId ,messageSenderId ,senderAlias, messageChannelId, message):
-        return messageId + '|' + messageSenderId + '|' + senderAlias + '|' + messageChannelId + '|' + message
-
-    def packmessage(self):
-        return self.messageId + '|' + self.messageSenderId + '|' + self.senderAlias + '|' + self.messageChannelId + '|' + self.message
-
 # Queue class used for storing messages during processing.
 class Queue:
     def __init__(self):

@@ -4,10 +4,12 @@ import threading
 import CommonUtil
 import functools
 import time
+from messages.Message import Message as Message
+
 
 def welcome_message():
-    data = CommonUtil.Message.pack('0000000000000000', '0000000000000000','server', '0000000000000000', "welcome to TDO communication services").encode('utf8')
-    return CommonUtil.Message(data)
+    data = Message.pack('0000000000000000', '0000000000000000', 'server', '0000000000000000', "welcome to TDO communication services").encode('utf8')
+    return Message(data)
 
 
 class user:
@@ -95,7 +97,7 @@ class Server:
 
 
         validate(d)
-        msg = CommonUtil.Message(d)
+        msg = Message(d)
         enqueue(self, msg)
         dequeue(self)  # temp method, will move somewhere, do it independently on a loop in thread
 

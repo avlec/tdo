@@ -8,6 +8,7 @@ import time
 # format: message id|message sender id|sender alias|message channel id|message
 # ids are 16 digits, message is limited to 256 characters
 # sample: 0000000000000000|0000000000000000|server|0000000000000000|Hello world
+import messages.Message
 
 
 class Client:
@@ -21,11 +22,11 @@ class Client:
 
     def get_input(self, p):
         msg = raw_input()
-        return CommonUtil.Message.pack(CommonUtil.createID(), self.id, self.alias, self.currentChannel, msg)
+        return messages.Message.Message.pack(CommonUtil.createID(), self.id, self.alias, self.currentChannel, msg)
 
 
 def print_byte(data):
-    msg = CommonUtil.Message(data)
+    msg = messages.Message.Message(data)
     print msg.senderAlias + ':' + msg.message
 
 if __name__ == '__main__':
