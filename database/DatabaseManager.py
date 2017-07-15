@@ -20,22 +20,50 @@ class DatabaseManager:
         return self.cursor.fetchone()
 
     def lookup(self, type, identifier):
-        if type == 'user':
+        """
+        Considering redoing the way this method works,
+        Possibly also changing how messages are accessed
+        Because: messages are probably going to be accessed'
+        by channel ID over id, and be sorted by time
+        :param type:
+        :param identifier:
+        :return:
+        """
+        if type == 'USER':
             return self.lookup_query('tdo.public.users','ALIAS', identifier)
-        elif type == 'chatroom':
-            return self.lookup_query('tdo.public.chatrooms', 'NAME', identifier)
+        elif type == 'MESSAGE':
+            return self.lookup_query('tdo.public.messages', 'ID', identifier)
         elif type == '':
             pass
         return None
 
     def write(self, data):
-        # determine what kind of object is
-        # send it to the appropriate write method
+        """
+        Determines what class type the input is
+        and calls the appropriate write method
+        :param data:
+        :return:
+        """
+        class_type = data.__class__.__name__
+        if class_type is '__Client__':
+            self._write_client(data)
+        elif class_type is '__Message__':
+            self._write_message(data)
         pass
 
     # for writing a user to the DB
-    def write_user(self, data):
+    def _write_client(self, data):
+        """
         (salt, alias, passphrase) = data
+        """
         self.cursor.execute('''INSERT INTO tdo.public.users (salt, alias, pass)
-                               VALUES (%s, %s, %s);''', (salt, alias, passphrase))
+                               VALUES (%s, %s, %s);''', data)
+        self.connection.commit()
+
+    def _write_message(self, data):
+        """
+        (messageId, senderId, messageChannelId, message, time) = data
+        """
+        self.cursor.execute('''INSERT INTO tdo.public.messages (id, senderid, channelId, message, time)
+                               VALUES (%s, %s, %s, %s, %s);''', data)
         self.connection.commit()
