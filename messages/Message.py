@@ -2,14 +2,19 @@ from messages.MessageEncoding import MessageEncoder, MessageDecoder
 
 
 class Message:
-    def __init__(self, data):
-        self.data = data
-        inputList = data.decode().split('|')
-        self.messageId = inputList[0]
-        self.messageSenderId = inputList[1]
-        self.senderAlias = inputList[2]
-        self.messageChannelId = inputList[3]
-        self.message = inputList[4]
+    def __init__(self, messageId, messageSenderId, senderAlias, messageChannelId, message):
+        self.messageId = messageId
+        self.messageSenderId = messageSenderId
+        self.senderAlias = senderAlias
+        self.messageChannelId = messageChannelId
+        self.message = message
+        #self.data = data
+        #inputList = data.decode().split('|')
+        #self.messageId = inputList[0]
+        #self.messageSenderId = inputList[1]
+        #self.senderAlias = inputList[2]
+        #self.messageChannelId = inputList[3]
+        #self.message = inputList[4]
         self.validate()
 
     # someone do this
