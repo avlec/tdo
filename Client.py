@@ -8,7 +8,7 @@ import time
 # format: message id|message sender id|sender alias|message channel id|message
 # ids are 16 digits, message is limited to 256 characters
 # sample: 0000000000000000|0000000000000000|server|0000000000000000|Hello world
-import messages.Message
+from messages.Message import Message as Message
 
 
 class Client:
@@ -22,11 +22,12 @@ class Client:
 
     def get_input(self, p):
         msg = raw_input()
-        return messages.Message.Message.pack(CommonUtil.createID(), self.id, self.alias, self.currentChannel, msg)
+        return Message(CommonUtil.createID(), self.id, self.alias, self.currentChannel, msg).encode()
 
 
-def print_byte(data):
-    msg = messages.Message.Message(data)
+def print_message(data):
+    print data.decode()
+    msg = Message.decode(data)
     print msg.senderAlias + ':' + msg.message
 
 if __name__ == '__main__':
@@ -44,7 +45,7 @@ if __name__ == '__main__':
     print('my port is ' + p1 + '' and '' + p2)
     threading._start_new_thread(CommonUtil.outbound_connection_handler, (int(p1), C.get_input,))
     time.sleep(0.05)
-    threading._start_new_thread(CommonUtil.inbound_connection_handler, (int(p2),print_byte,))
+    threading._start_new_thread(CommonUtil.inbound_connection_handler, (int(p2), print_message,))
 
 
     while True:

@@ -8,8 +8,8 @@ from messages.Message import Message as Message
 
 
 def welcome_message():
-    data = Message.pack('0000000000000000', '0000000000000000', 'server', '0000000000000000', "welcome to TDO communication services").encode('utf8')
-    return Message(data)
+    msg = Message('0000000000000000', '0000000000000000', 'server', '0000000000000000', "welcome to TDO communication services")
+    return msg
 
 
 class user:
@@ -79,7 +79,7 @@ class Server:
     def send(s, p):
         msg = s.Outbound[p].Pop()
         if msg:
-            return msg.packmessage()
+            return msg.encode()
 
     def enqueue(self, p, d):
         def validate(d):
@@ -90,14 +90,13 @@ class Server:
 
         def dequeue(self):
             msg = self.Inbound.Pop()
-            print(msg.packmessage())
             for u in self.users:
                 if u.id != msg.messageSenderId and u.currentchannel == msg.messageChannelId:
                     self.Outbound[u.inport].Push(msg)
 
 
         validate(d)
-        msg = Message(d)
+        msg = Message.decode(d)
         enqueue(self, msg)
         dequeue(self)  # temp method, will move somewhere, do it independently on a loop in thread
 

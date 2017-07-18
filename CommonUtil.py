@@ -6,12 +6,7 @@ import string
 # ----------------------------------------------------------------------------------------------------------------------------------
 # utility classes, Message, Queue, connection error
 # ----------------------------------------------------------------------------------------------------------------------------------
-# message class used to process messages
-# format: message id|message sender id|sender alias|message channel id|message
-# ids are 16 digits, message is limited to 256 characters
-# sample: 0000000000000000|0000000000000000|server|0000000000000000|Hello world
 
-#alec redo to xml if you feel like it, but make function in to pack and unpack to this class
 # Queue class used for storing messages during processing.
 class Queue:
     def __init__(self):
@@ -49,7 +44,7 @@ def outbound_connection_handler(port, handler):
     while True:
         msg = handler(port)
         if msg:
-            serversocket.send(msg.encode('utf8'))
+            serversocket.send(msg)
     serversocket.close()
 
 
@@ -63,9 +58,12 @@ def inbound_connection_handler(port, handler):
         data = s.recv(1024)
         if not data:
             raise connection_error('invalid data')
-        handler(data)
+        print(data.decode('utf8'))
+        handler(data.decode('utf8'))
     s.close()
 
 
 def createID():
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16))
+
+
