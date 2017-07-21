@@ -4,13 +4,31 @@ import threading
 import CommonUtil
 import functools
 import time
+import re
 from messages.Message import Message as Message
 
 
 def welcome_message():
-    msg = Message('0000000000000000', '0000000000000000', 'server', '0000000000000000', "welcome to TDO communication services")
+    msg = Message('0000000000000000', '0000000000000000', 'server', '0000000000000000', 'welcome to TDO communication services','message')
     return msg
-
+class db:
+    @staticmethod
+    def getUser(userid):
+        pass
+    @staticmethod
+    def userHasPermisions(user,permisions):
+        pass
+    @staticmethod
+    def change_default_permisions(channel, permissions):
+        regex = re.match(r'([01]{3})',permissions)
+        if regex:
+            pass#change permision
+    @staticmethod
+    def getChannel(server,channel):
+        for ch in server.Channels:
+            if ch.name == channel:
+                return ch
+        return None
 
 class user:
     def __init__(self, alias, userid, inport,outport):
@@ -23,36 +41,20 @@ class user:
 
 # todo implement DB connection
 class Channel:
-    @staticmethod
-    def is_permissions(permissions):
-        if permissions:
-            return True
-        elif False:  # insert regex to check that its a bitstring length 3
-            pass
-        else:
-            return False
-
     def __init__(self, name, permissions):
         self.name = name
         if name == 'General':
             self.id = '0000000000000000'
         else:
             self.id = CommonUtil.createID()
-
-        #users should be a table in future
-        self.users = []
-        if self.is_permissions(permissions):
-            self.default_permissions = permissions
+        regex = re.match(r'([01]{3})', permissions)
+        if regex:
+           self.permisions = permissions
         else:
-            self.default_permissions = '011'
+            self.permisions = '011'
 
-    def change_default_permisions(self, permissions):
-        if self.is_permissions(permissions):
-            self.default_permissions = permissions
-        else:
-            pass
 
-    def add_user(self, user):
+    def addUser(self, user):
         self.users.append(user)
 
 
@@ -82,17 +84,50 @@ class Server:
             return msg.encode()
 
     def enqueue(self, p, d):
+
         def validate(d):
             pass
 
         def enqueue(self, message):
             self.Inbound.Push(message)
-
+        #will get moved to seperate thread soon TM
         def dequeue(self):
             msg = self.Inbound.Pop()
-            for u in self.users:
-                if u.id != msg.messageSenderId and u.currentchannel == msg.messageChannelId:
-                    self.Outbound[u.inport].Push(msg)
+            if msg.messageType == 'command':
+                for command in CommonUtil.commands:
+                    regex = re.match(CommonUtil.commands[command], msg.message)
+                    if regex:
+                        if command == 'join':
+                            ch =db.getChannel(self, regex.group(0))
+                            if ch:
+                                ch.addUser(db.getUser(msg.messageSenderId))
+                        if command == 'create':
+                            ch = db.getChannel(self, regex.group(0))
+                            if ch:
+                                pass#send user error msg
+                            else:
+                                c = Channel(regex.group(0), regex.group(1))
+                                self.Channels.append(c)
+                                c.addUser(db.getUser(msg.messageSenderId))
+                        if command == 'set_alias':
+                            pass#check existance, then create or send msg
+                        if command == 'block':
+                            pass#check permision, existance, then create or send msg
+                        if command == 'unblock':
+                            pass#check permision, existance, then create or send msg
+                        if command == 'delete':
+                            pass#check permision, then create or send msg
+                        if command == 'chmod':
+                            pass#check permision, existance, then chmod or send msg
+
+                    else:
+                        pass# respond with channel not found?
+
+            else:
+                print(msg.message)
+                for u in self.users:
+                    if u.id != msg.messageSenderId and u.currentchannel == msg.messageChannelId:
+                        self.Outbound[u.inport].Push(msg)
 
 
         validate(d)

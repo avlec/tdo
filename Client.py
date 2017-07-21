@@ -5,6 +5,7 @@ import CommonUtil
 import random
 import string
 import time
+import re
 # format: message id|message sender id|sender alias|message channel id|message
 # ids are 16 digits, message is limited to 256 characters
 # sample: 0000000000000000|0000000000000000|server|0000000000000000|Hello world
@@ -19,14 +20,26 @@ class Client:
 
     def chat_client(self):
         pass
+    def command(self,str):
+        #regex objects for each command
+        for command in CommonUtil.commands:
+            if re.match(CommonUtil.commands[command], str):
+                print('command sent')
+                return True
+        return False
 
     def get_input(self, p):
         msg = raw_input()
-        return Message(CommonUtil.createID(), self.id, self.alias, self.currentChannel, msg).encode()
+
+        if self.command(msg):
+            return Message(CommonUtil.createID(), self.id, self.alias, self.currentChannel, msg, 'command').encode()
+        elif re.match(r'\/.+', msg):
+            print('commands info:')#add a print out of all commands info
+        else:
+            return Message(CommonUtil.createID(), self.id, self.alias, self.currentChannel, msg, 'message').encode()
 
 
 def print_message(data):
-    print data.decode()
     msg = Message.decode(data)
     print msg.senderAlias + ':' + msg.message
 

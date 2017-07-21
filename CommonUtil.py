@@ -1,6 +1,7 @@
 import random
 import socket
 import string
+import re
 
 
 # ----------------------------------------------------------------------------------------------------------------------------------
@@ -47,7 +48,6 @@ def outbound_connection_handler(port, handler):
             serversocket.send(msg)
     serversocket.close()
 
-
 def inbound_connection_handler(port, handler):
     print('inbound port is :' + str(port) + '\n')
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -58,12 +58,17 @@ def inbound_connection_handler(port, handler):
         data = s.recv(1024)
         if not data:
             raise connection_error('invalid data')
-        print(data.decode('utf8'))
         handler(data.decode('utf8'))
     s.close()
 
 
 def createID():
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16))
-
-
+commands = {
+    'join': re.compile(r'\/join (\w+)'),
+    'create': re.compile(r'\/create (\w+) ([01]{3})?'),
+    'set_alias': re.compile(r'\/set_alias (\w+) (\w+)'),
+    'block': re.compile(r'\/block (\w+)'),
+    'unblock': re.compile(r'\/unblock (\w+)'),
+    'delete': re.compile(r'\/delete (\w+)'),
+    'chmod': re.compile(r'\/block (\w+) ([01]{3})')}
