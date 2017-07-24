@@ -20,6 +20,7 @@ class Client:
 
     def chat_client(self):
         pass
+
     def command(self,str):
         #regex objects for each command
         for command in CommonUtil.commands:
@@ -41,7 +42,7 @@ class Client:
 
 def print_message(data):
     msg = Message.decode(data)
-    print msg.senderAlias + ':' + msg.message
+    print(msg.senderAlias + ':' + msg.message)
 
 if __name__ == '__main__':
     C = Client()
