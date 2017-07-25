@@ -4,46 +4,59 @@ import tkinter.messagebox
 class GUI_MainPg:
 
     def __init__(self,master):
-
-        frame = Frame(master)
-        frame.pack()
-        master.bind('<Return>', self.enter)
-        title = Label(frame, text="TDO")
-
-        textField=Text(frame, width = 35, height = 13)
-        roomName = Text(frame, width=25, height=5)
-        send = Button(frame, text="Send", command=self.sendPressed)
-        mainText = Entry(frame)
-        room2Join = Entry(frame)
-        roomJoin = Button(frame, text="Send", command=self.send2Pressed)
-
-        online =Text(frame, width=25, height=5)
-
-
-        title.grid(row=0, columnspan=7)
-        textField.grid(row=1, columnspan=2, rowspan= 3)
-        roomName.grid(row=1, column=3, columnspan=2)
-        room2Join.grid(row=2,column=3, sticky= E)
-        roomJoin.grid(row=2,column=4, sticky = W)
-        mainText.grid(row=4, column=0, sticky = E)
-        send.grid(row=4, column=1, sticky = W)
-        online.grid(row =3, column =3, columnspan = 2)
+        # the main frame
+        self.frame = Frame(master)
+        self.frame.pack()
+        #title
+        self.title = Label(self.frame, text="TDO")
+        # the field with messages deploying
+        self.textField=Text(self.frame, width = 35, height = 13)
+        #the field with rooms to join visible
+        self.roomName = Text(self.frame, width=25, height=5)
+        # send button
+        self.send = Button(self.frame, text="Send", command=self.sendPressed)
+        # the main chat bar
+        self.mainText = Entry(self.frame)
+        self.mainText.bind('<Return>', self.enter)
+        #the room to join text bar
+        self.room2Join = Entry(self.frame)
+        self.room2Join.bind('<Return>', self.altEnter)
+        #button for join room
+        self.roomJoin = Button(self.frame, text="Send", command=self.send2Pressed)
+        #field for users online
+        self.online =Text(self.frame, width=25, height=5)
 
 
-        textField.config(state=DISABLED)
-        roomName.config(state=DISABLED)
+
+        # the placement of objects in the grid
+        self.title.grid(row=0, columnspan=7)
+        self.textField.grid(row=1, columnspan=2, rowspan= 3)
+        self.roomName.grid(row=1, column=3, columnspan=2)
+        self.room2Join.grid(row=2,column=3, sticky= E)
+        self.roomJoin.grid(row=2,column=4, sticky = W)
+        self.mainText.grid(row=4, column=0, sticky = E)
+        self.send.grid(row=4, column=1, sticky = W)
+        self.online.grid(row =3, column =3, columnspan = 2)
+
+
+        self.textField.config(state=DISABLED)
+        self.roomName.config(state=DISABLED)
+        self.online.config(state=DISABLED)
 
 # -------- buttons/functions---------
     def sendPressed(self):
-        print("send button pressed")
+        print(self.mainText.get())
 
     def send2Pressed(self):
-        print("room button pressed")
+        print(self.roomName.get())
 
     def enter(self,event):
-        print("enter key")
+        print(self.mainText.get())
+    # the function for the room join enter key being pushed.
+    def altEnter(self, event):
+        print(self.roomName.get())
 
-    def update (self, string):
+    def updateChat (self, string):
         self.textField.config(state=NORMAL)
         self.textField.insert(END , string)
         self.textField.config(state=DISABLED)
@@ -73,10 +86,10 @@ class login:
 
 # ----- button functions -------
     def loginButton(self):
-        print("login button pressed")
+        print(login.get())
 
     def enter(self,event):
-        print("enter button pressed")
+        print()
 
 
 
