@@ -64,33 +64,33 @@ class GUI_MainPg:
 # *********** the Login Page ***********
 class login:
     def __init__(self, master):
+        self.master = master
+        self.submit = Button(self.master, text="Login", command=self.loginButton)
 
-        submit = Button(master, text="Login", command=self.loginButton)
-
-        Title = Label(master, text="TDO")
+        self.Title = Label(self.master, text="TDO")
 
         #img = PhotoImage(file='eggsml.png')
         #image = Label(master, image=img)
 
-        message = Label(master, text="You're premier message delivery system.")
+        self.message = Label(self.master, text="You're premier message delivery system.")
 
-        field1 = Entry(master)
+        self.field1 = Entry(self.master)
+        self.field1.bind('<Return>', self.enter)
 
 
-
-        Title.grid(row=0, columnspan=2)
+        self.Title.grid(row=0, columnspan=2)
         #image.grid(row=1, columnspan=2)
-        message.grid(row=2, columnspan=2)
-        field1.grid(row=3, column=0, sticky=E)
-        submit.grid(row=3, column=1, sticky=W)
+        self.message.grid(row=2, columnspan=2)
+        self.field1.grid(row=3, column=0, sticky=E)
+        self.submit.grid(row=3, column=1, sticky=W)
 
 # ----- button functions -------
     def loginButton(self):
-        print(login.get())
-
+        print(self.field1.get())
+        self.master.destroy()
     def enter(self,event):
-        print()
-
+        print(self.field1.get())
+        self.master.destroy()
 
 
 
