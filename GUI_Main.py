@@ -1,8 +1,10 @@
 from Tkinter import *
+import CommonUtil
 # ******** the main page *************
 class GUI_MainPg:
-
+    
     def __init__(self,master):
+        self.messageQueue = CommonUtil.Queue()
         # the main frame
         self.frame = Frame(master)
         self.frame.pack()
@@ -44,12 +46,14 @@ class GUI_MainPg:
 
 # -------- buttons/functions---------
     def sendPressed(self):
-        print(self.mainText.get())
+        self.updateChat(self.mainText.get()+'\n')
+        self.messageQueue.Push(self.mainText.get())
         self.mainText.delete(0 , END)
 
 
     def enter(self,event):
-        print(self.mainText.get())
+        self.updateChat(self.mainText.get()+'\n')
+        self.messageQueue.Push(self.mainText.get())
         self.mainText.delete(0, END)
     # the function for the room join enter key being pushed.
     #def altEnter(self, event):

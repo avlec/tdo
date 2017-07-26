@@ -7,6 +7,7 @@ import string
 import time
 import re
 import Tkinter
+import functools
 import GUI_Main
 from messages.Message import Message as Message
 
@@ -16,15 +17,19 @@ class Client:
         self.id = '0000000000000000'
         self.currentChannel = '0000000000000000'
         self.alias = 'bob' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(3))
+        root2 = Tkinter.Tk()
+        self.guiL = GUI_Main.login(root2)
+        root2.mainloop()
+        self.gui = None
+        threading._start_new_thread(self.chat_client,())
+        
 
 
     def chat_client(self):
-        root2 = Tkinter.Tk()
-        guiL = GUI_Main.login(root2)
-        root2.mainloop()
+        
 
         root = Tkinter.Tk()
-        gui = GUI_Main.GUI_MainPg(root)
+        self.gui = GUI_Main.GUI_MainPg(root)
         root.mainloop()
 
     def command(self,str):
@@ -34,16 +39,20 @@ class Client:
                 print('command sent')
                 return True
         return False
-
+        
     def get_input(self, p):
-        msg = raw_input()
-
-        if self.command(msg):
-            return Message(CommonUtil.createID(), self.id, self.alias, self.currentChannel, msg, 'command').encode()
-        elif re.match(r'\/.+', msg):
-            print('commands info:')#add a print out of all commands info
-        else:
-            return Message(CommonUtil.createID(), self.id, self.alias, self.currentChannel, msg, 'message').encode()
+        while True:
+            msg = None
+            if self.gui:
+                msg = self.gui.messageQueue.Pop()
+            if msg:
+                if self.command(msg):
+                    return Message(CommonUtil.createID(), self.id, self.alias, self.currentChannel, msg, 'command').encode()
+                elif re.match(r'\/.+', msg):
+                    print('commands info:')#add a print out of all commands info
+                else:
+                    return Message(CommonUtil.createID(), self.id, self.alias, self.currentChannel, msg, 'message').encode()
+                
             
     @staticmethod
     def error(port):
@@ -52,9 +61,11 @@ class Client:
         C.print_message(errMessage)
         sys.exit(0)
 
-def print_message(data):
-    msg = Message.decode(data)
-    print(msg.senderAlias + ':' + msg.message)
+    def print_message(self,data):
+        msg = Message.decode(data)
+        #print(msg.senderAlias + ':' + msg.message)
+        self.gui.updateChat(msg.senderAlias + ':' + msg.message+'\n')
+        
 
 if __name__ == '__main__':
     C = Client()
@@ -71,8 +82,8 @@ if __name__ == '__main__':
     print('my port is ' + p1 + '' and '' + p2)
     threading._start_new_thread(CommonUtil.outbound_connection_handler, (int(p1), C.get_input,C.error,))
     time.sleep(0.05)
-    threading._start_new_thread(CommonUtil.inbound_connection_handler, (int(p2), print_message,C.error,))
-    #uncomment to run gui
+    threading._start_new_thread(CommonUtil.inbound_connection_handler, (int(p2), C.print_message,C.error,))
+    #uncomment to run gui 
     #C.chat_client()
 
     while True:
