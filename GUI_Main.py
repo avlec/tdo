@@ -1,5 +1,4 @@
-from tkinter import *
-import tkinter.messagebox
+from Tkinter import *
 # ******** the main page *************
 class GUI_MainPg:
 
@@ -48,9 +47,6 @@ class GUI_MainPg:
         print(self.mainText.get())
         self.mainText.delete(0 , END)
 
-    #def send2Pressed(self):
-        #print(self.roomName.get())
-        #self.mainText.delete(0,END)
 
     def enter(self,event):
         print(self.mainText.get())
@@ -104,17 +100,5 @@ class login:
         self.master.destroy()
 
 
-
-
-
-
-
-root2 = Tk()
-guiL = login(root2)
-root2.mainloop()
-
-root = Tk()
-gui = GUI_MainPg(root)
-root.mainloop()
 
 

@@ -35,20 +35,24 @@ class connection_error(Exception):
 # ----------------------------------------------------------------------------------------------------------------------------------
 
 
-def outbound_connection_handler(port, handler):
-    print('outbound port is :' + str(port) + '\n')
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host = socket.gethostname()
-    s.bind((host, port))
-    s.listen(2)
-    serversocket,addr = s.accept()
-    while True:
-        msg = handler(port)
-        if msg:
-            serversocket.send(msg)
-    serversocket.close()
+def outbound_connection_handler(port, handler,error):
+    try:
+        print('outbound port is :' + str(port) + '\n')
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        host = socket.gethostname()
+        s.bind((host, port))
+        s.listen(2)
+        serversocket,addr = s.accept()
+        while True:
+            msg = handler(port)
+            if msg:
+                serversocket.send(msg)
+        serversocket.close()
+    except:
+        error(port)
 
-def inbound_connection_handler(port, handler):
+def inbound_connection_handler(port, handler,error):
+    #try:
     print('inbound port is :' + str(port) + '\n')
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = socket.gethostname()
@@ -60,7 +64,8 @@ def inbound_connection_handler(port, handler):
             raise connection_error('invalid data')
         handler(data.decode('utf8'))
     s.close()
-
+    #except:
+        #error(port)
 
 def createID():
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16))
