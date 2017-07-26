@@ -1,7 +1,6 @@
 import psycopg2
 import hashlib, binascii
 
-
 # Class used to manage interactions between the database and server
 class DatabaseManager:
 
@@ -14,56 +13,56 @@ class DatabaseManager:
         self.connection = psycopg2.connect("dbname=tdo host='localhost' user=%s password=%s" % (user, password))
         self.cursor = self.connection.cursor()
 
-    def lookup_query(self, table, identifier_type, identifier):
-        self.cursor.execute('''SELECT * FROM %s
-                               WHERE %s=%s''', (table, identifier_type, identifier))
+    # Lookup Commands
+    def lookupUser(self, identifier, column="salt"):
+        self.cursor.execute('''SELECT * FROM tdo.public.messages
+                                               WHERE %s=%s''', (column, identifier))
         return self.cursor.fetchone()
 
-    def lookup(self, type, identifier):
-        """
-        Considering redoing the way this method works,
-        Possibly also changing how messages are accessed
-        Because: messages are probably going to be accessed'
-        by channel ID over id, and be sorted by time
-        :param type:
-        :param identifier:
-        :return:
-        """
-        if type == 'USER':
-            return self.lookup_query('tdo.public.users','ALIAS', identifier)
-        elif type == 'MESSAGE':
-            return self.lookup_query('tdo.public.messages', 'ID', identifier)
-        elif type == '':
-            pass
-        return None
+    def lookupChatroom(self, identifier, column="id"):
+        self.cursor.execute('''SELECT * FROM tdo.public.messages
+                                               WHERE %s=%s''', (column, identifier))
+        return self.cursor.fetchone()
 
-    def write(self, data):
+    def lookupMessage(self, identifier, column="id"):
+        self.cursor.execute('''SELECT * FROM tdo.public.messages
+                                       WHERE %s=%s''', (column, identifier))
+        return self.cursor.fetchone()
+
+    def lookupMessages(self, identifier, column="id"):
+        self.cursor.execute('''SELECT * FROM tdo.public.messages
+                                       WHERE %s=%s''', (column, identifier))
+        return self.cursor.fetchall()
+
+    # Create methods
+
+    def createClient(self, data):
         """
-        Determines what class type the input is
-        and calls the appropriate write method
+
         :param data:
         :return:
         """
-        class_type = data.__class__.__name__
-        if class_type is '__Client__':
-            self._write_client(data)
-        elif class_type is '__Message__':
-            self._write_message(data)
-        pass
-
-    # for writing a user to the DB
-    def _write_client(self, data):
-        """
-        (salt, alias, passphrase) = data
-        """
         self.cursor.execute('''INSERT INTO tdo.public.users (salt, alias, pass)
-                               VALUES (%s, %s, %s);''', data)
+                                       VALUES (%s, %s, %s);''', data)
         self.connection.commit()
 
-    def _write_message(self, data):
+    def createChatroom(self, data):
         """
-        (messageId, senderId, messageChannelId, message, time) = data
+        Use to instantiate a record in the database of the channel
+        :param data: Should hold the form (ID, NAME, INITIAL_MEMBER_ID, PERMISSIONS)
+        Blocked users isn't included in creation, cause there shouldn't be any on creation
+        :return:
         """
-        self.cursor.execute('''INSERT INTO tdo.public.messages (id, senderid, channelId, message, time)
+        self.cursor.execute('''INSERT INTO tdo.public.channels (id, name, members, permissions)
+                               VALUES (%s, %s, %s, %s);''', data)
+        self.connection.commit()
+
+    def createMessage(self, data):
+        """
+
+        :param data:
+        :return:
+        """
+        self.cursor.execute('''INSERT INTO tdo.public.messages (id, senderid, channelid, message, time)
                                VALUES (%s, %s, %s, %s, %s);''', data)
         self.connection.commit()
