@@ -1,17 +1,13 @@
 import random
 import socket
 import string
+import re
 
 
 # ----------------------------------------------------------------------------------------------------------------------------------
 # utility classes, Message, Queue, connection error
 # ----------------------------------------------------------------------------------------------------------------------------------
-# message class used to process messages
-# format: message id|message sender id|sender alias|message channel id|message
-# ids are 16 digits, message is limited to 256 characters
-# sample: 0000000000000000|0000000000000000|server|0000000000000000|Hello world
 
-#alec redo to xml if you feel like it, but make function in to pack and unpack to this class
 # Queue class used for storing messages during processing.
 class Queue:
     def __init__(self):
@@ -39,21 +35,24 @@ class connection_error(Exception):
 # ----------------------------------------------------------------------------------------------------------------------------------
 
 
-def outbound_connection_handler(port, handler):
-    print('outbound port is :' + str(port) + '\n')
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host = socket.gethostname()
-    s.bind((host, port))
-    s.listen(2)
-    serversocket,addr = s.accept()
-    while True:
-        msg = handler(port)
-        if msg:
-            serversocket.send(msg.data)
-    serversocket.close()
+def outbound_connection_handler(port, handler,error):
+    try:
+        print('outbound port is :' + str(port) + '\n')
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        host = socket.gethostname()
+        s.bind((host, port))
+        s.listen(2)
+        serversocket,addr = s.accept()
+        while True:
+            msg = handler(port)
+            if msg:
+                serversocket.send(msg)
+        serversocket.close()
+    except:
+        error(port)
 
-
-def inbound_connection_handler(port, handler):
+def inbound_connection_handler(port, handler,error):
+    #try:
     print('inbound port is :' + str(port) + '\n')
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = socket.gethostname()
@@ -63,10 +62,18 @@ def inbound_connection_handler(port, handler):
         data = s.recv(1024)
         if not data:
             raise connection_error('invalid data')
-        print(data.decode('utf8'))
         handler(data.decode('utf8'))
     s.close()
-
+    #except:
+        #error(port)
 
 def createID():
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16))
+commands = {
+    'join': re.compile(r'\/join (\w+)'),
+    'create': re.compile(r'\/create (\w+) ([01]{3})?'),
+    'set_alias': re.compile(r'\/set_alias (\w+) (\w+)'),
+    'block': re.compile(r'\/block (\w+)'),
+    'unblock': re.compile(r'\/unblock (\w+)'),
+    'delete': re.compile(r'\/delete (\w+)'),
+    'chmod': re.compile(r'\/block (\w+) ([01]{3})')}
