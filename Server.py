@@ -202,7 +202,7 @@ if __name__ == '__main__':
         # starting threads to manage connection
         server.Outbound[p1] = CommonUtil.Queue()
         server.Outbound[p1].Push(welcome_message())
-        server.users.append(User('', newuserid, p1, p2))
+        server.users.append(user)
         threading._start_new_thread(CommonUtil.outbound_connection_handler, (p1, functools.partial(server.send, server),server.error,))
         time.sleep(0.05)
         threading._start_new_thread(CommonUtil.inbound_connection_handler, (p2, functools.partial(server.enqueue, server),server.error,))

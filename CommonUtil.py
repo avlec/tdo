@@ -49,7 +49,7 @@ def outbound_connection_handler(port, handler,error):
                 serversocket.send(msg)
         serversocket.close()
     except:
-        error(port)
+        error()
 
 def inbound_connection_handler(port, handler,error):
     try:
@@ -65,7 +65,7 @@ def inbound_connection_handler(port, handler,error):
             handler(data.decode('utf8'))
         s.close()
     except:
-        error(port)
+        error()
 
 def createID():
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16))

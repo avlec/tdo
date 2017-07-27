@@ -108,3 +108,4 @@ class login:
 
     def on_closing(self):
         self.root.destroy()
+        sys.exit(0)

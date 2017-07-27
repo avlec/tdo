@@ -53,7 +53,10 @@ class databaseinterface:
         :param alias: Alias of user being looked up
         :return: User object
         """
-        (id, alias, password) = self.dbmanager.lookupUser(alias, "alias")
+        x = self.dbmanager.lookupUser(alias, "alias")
+        if not x:
+            return None
+        (id, alias, password) = x
         return (alias, id, None, None)
 
     def newChannel(self, channel):
