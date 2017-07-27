@@ -59,7 +59,6 @@ class GUI_MainPg:
 
     def updateChat(self, string , color, msgID):
         self.textField.config(state=NORMAL)
-
         self.textField.insert(END, string, msgID)
         self.textField.tag_configure(msgID, foreground=color)
         self.textField.config(state=DISABLED)
@@ -73,7 +72,8 @@ class GUI_MainPg:
         self.online.config(state=NORMAL)
         self.online.insert(END, string)
         self.online.config(state=DISABLED)
-
+    def closing(self):
+        self.root.destroy()
 
 # *********** the Login Page ***********
 class login:
@@ -105,3 +105,6 @@ class login:
     def enter(self, event):
         print(self.field1.get())
         self.master.destroy()
+
+    def on_closing(self):
+        self.root.destroy()
