@@ -57,7 +57,12 @@ def inbound_connection_handler(port, handler,error):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         host = socket.gethostname()
         addr = (host, port)
-        s.connect(addr)
+        while True:
+            try:
+                s.connect(addr)
+                break
+            except:
+                pass
         while True:
             data = s.recv(1024)
             if not data:
