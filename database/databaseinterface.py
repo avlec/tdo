@@ -26,7 +26,7 @@ class databaseinterface:
         :param user: User object
         :return: None
         """
-        self.dbmanager.createUser( (user.salt, user.alias, user.password) )
+        self.dbmanager.createUser( (user.id, user.alias, user.password) )
 
     def changeUser(self, userid, user):
         """
