@@ -32,7 +32,7 @@ class Client:
         root = Tkinter.Tk()
         self.gui = GUI_Main.GUI_MainPg(root)
         root.mainloop()
-        sys.exit(0)
+        os._exit
 
     # checks if comman is valid whe / is used
     def command(self, str):
