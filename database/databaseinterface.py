@@ -1,64 +1,87 @@
 import re
-#methods return error messages if they did not complete action, none if successful
+from database.DatabaseManager import DatabaseManager as DatabaseManager
+from Server import user, Channel
+
+# methods return error messages if they did not complete action, none if successful
 class databaseinterface:
 
-    @staticmethod
-    def newUser(user):
-        pass  # adds user to db, returns error msg if duplicate
+    def __init__(self):
+        self.dbmanager = DatabaseManager('api','password')
 
-    @staticmethod
-    def changeUser(userid, user):
-        pass  # updates user in db at userid to be user
+    def newUser(self, user):
+        """
+        Adds a user to the database
+        :param user: User object
+        :return: None
+        """
+        self.dbmanager.createUser( (user.salt, user.alias, user.password) )
 
-    @staticmethod
-    def getUser(userid):
-        pass  # returns user object with given id
+    def changeUser(self, userid, user):
+        """
+        Updates the user in the database at user ID to be user
+        Basically removes then re adds
+        :param userid: Id of user being updated
+        :param user: User object
+        :return: None
+        """
+        self.dbmanager.updateUser(userid, user.name, user.password)
 
-    @staticmethod
-    def getUserAlias(alias):
-        pass  # returns user with alias==alias, none if not found
+    def getUser(self, userid):
+        """
+        Returns the information to create a user object from what was stored in the database
+        :param userid: Id of user being looked up
+        :return: User object
+        """
+        (id, alias, password) = self.dbmanager.lookupUser(userid)
+        return user(alias, id, None, None)
 
-    @staticmethod
-    def userHasPermisions(channel, user, permisions):
-        pass  # checks if user has  permissions
+    def getUserAlias(self, alias):
+        """
+        returns user with alias==alias, none if not found
+        :param alias: Alias of user being looked up
+        :return: User object
+        """
+        (id, alias, password) = self.dbmanager.lookupUser(alias, "alias")
+        return user(alias, id, None, None)
 
-    @staticmethod
-    def addUser(channel,user):
-        pass #adds user to channel with default channel permissions
+    def newChannel(self, channel):
+        """
+        Adds a channel object to the database
+        :param channel: Channel object
+        :return:
+        """
+        self.dbmanager.createChannel((channel.id, channel.name, channel.users[0], channel.permisions))
 
-    @staticmethod
-    def removeUser(channel,user):
-        pass#removes user from channel
+    def getChannel(self, channel):
+        """
+        Retrieve information from the database and create a channel object
+        :param channel:
+        :return:
+        """
+        (id, name, permissions, blocked_users) = self.dbmanager.lookupChannel(channel)
+        return Channel(name, permissions, id, blocked_users)
 
-    @staticmethod
-    def newChannel(channel):
-        pass#takes channel object, adds to DB
-    @staticmethod
-    def getChannel(channel):
-        pass #  returns channel class
-
-    @staticmethod
-    def changeChannel(channelid,channel):
-        pass  # updates user in db at @channelid to be @channel
-
-    @staticmethod
-    def change_default_permisions(channel, permissions):
+    def change_default_permisions(self, channel, permissions):
         regex = re.match(r'([01]{3})',permissions)
         if regex:
-            pass  # change permision in channel with given id
+            self.dbmanager.updateChannelPermissions(channel.id, permissions)
+            # change permision in channel with given id
 
-    @staticmethod
-    def SetChannelPermisions(channel, user, permissions):
-        if re.match(r'([01]{3})',permissions):
-            if user:
-                pass# sets channel permisions for @user in @channel
-            else:
-                pass  # sets channel wide default permissions
 
-    @staticmethod
-    def blockUser(channel,user):
-        pass #blocks user in given channel
+    def blockUser(self, channel, user):
+        """
+        Blocks a given user from a given channel
+        :param channel: Channel object
+        :param user: User object
+        :return: None
+        """
+        self.dbmanager.appendBlockedChannel(channel.id, user.id)
 
-    @staticmethod
-    def UnblockUser(channel,user):
-        pass#unblocks user in given channel
+    def UnblockUser(self, channel,user):
+        """
+        Unblocks a given user from a given channel
+        :param channel: Channel object
+        :param user: User object
+        :return: None
+        """
+        self.dbmanager.removeBlockedUser(channel.id, user.id)

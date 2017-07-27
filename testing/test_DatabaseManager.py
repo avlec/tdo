@@ -16,14 +16,14 @@ class TestDatabaseManager(unittest.TestCase):
         self.dbm = None
 
     def test_write_client(self):
-        self.dbm.createClient(self.test_user_data)
+        self.dbm.createUser(self.test_user_data)
         self.dbm.cursor.execute('''SELECT * FROM USERS
-                            WHERE salt=%s AND alias=%s AND pass=%s;''', self.test_user_data)
+                            WHERE id=%s AND alias=%s AND pass=%s;''', self.test_user_data)
         self.assertEqual(self.test_user_data[1:], self.dbm.cursor.fetchone()[1:])
         self.dbm.connection.commit()
         # remove entry
         self.dbm.cursor.execute('''DELETE FROM USERS
-                            WHERE salt=%s AND alias=%s AND pass=%s;''', self.test_user_data)
+                            WHERE id=%s AND alias=%s AND pass=%s;''', self.test_user_data)
         self.dbm.connection.commit()
 
     def test_write_message(self):

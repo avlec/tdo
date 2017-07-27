@@ -1,10 +1,9 @@
-CREATE TABLE users (SALT CHARACTER(16) PRIMARY KEY,
+CREATE TABLE users (ID CHARACTER(16) PRIMARY KEY,
                     ALIAS VARCHAR(16) NOT NULL,
                     PASS CHARACTER(64));
 
 CREATE TABLE channels (ID CHARACTER(16) PRIMARY KEY,
                       NAME CHARACTER(16),
-                      MEMBERS CHARACTER(16) ARRAY[1024],
                       PERMISSIONS CHARACTER(3),
                       BLOCKED_MEMBERS CHARACTER(16) ARRAY[1024]);
 

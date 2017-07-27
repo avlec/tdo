@@ -28,7 +28,7 @@ class user:
 
 # todo implement DB connection
 class Channel:
-    def __init__(self, name, permissions,id):
+    def __init__(self, name, permissions, id, blockedUsers=[]):
         self.name = name
         self.blockedUsers = []
         self.users = []
