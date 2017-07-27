@@ -5,7 +5,8 @@ import CommonUtil
 # ******** the main page *************
 class GUI_MainPg:
     def __init__(self, master):
-        self.root.protocol("WM_DELETE_WINDOW", on_closing)
+        self.root = master
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.messageQueue = CommonUtil.Queue()
         # the main frame
         self.frame = Frame(master)
