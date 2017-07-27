@@ -31,7 +31,6 @@ class Client:
     def chat_client(self):
         root = Tkinter.Tk()
         self.gui = GUI_Main.GUI_MainPg(root)
-        root.protocol('WM_DELETE_WINDOW', self.gui.on_closing)
         root.mainloop()
         sys.exit(0)
 
