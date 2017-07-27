@@ -72,8 +72,9 @@ class GUI_MainPg:
         self.online.config(state=NORMAL)
         self.online.insert(END, string)
         self.online.config(state=DISABLED)
-    def closing(self):
+    def on_closing(self):
         self.root.destroy()
+        sys.exit(0)
 
 # *********** the Login Page ***********
 class login:
@@ -108,4 +109,3 @@ class login:
 
     def on_closing(self):
         self.root.destroy()
-        sys.exit(0)
