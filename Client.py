@@ -23,6 +23,7 @@ class Client:
 		#starting log in screeen gui
         root2.mainloop()
         self.alias = self.guiL.username
+        print('alec is a cunt')
         self.gui = None
         threading._start_new_thread(self.chat_client,())
         
@@ -76,6 +77,7 @@ if __name__ == '__main__':
     port = 9999
     addr = (host, port)
     s.connect(addr)
+    s.send(C.username.encode('utf8'))
     connection_port = s.recv(1024)
     ports = connection_port.decode('utf8').split('|')
     p1 = ports.pop()
