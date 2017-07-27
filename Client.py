@@ -64,7 +64,7 @@ class Client:
     def print_message(self,data):
         msg = Message.decode(data)
         #print(msg.senderAlias + ':' + msg.message)
-        self.gui.updateChat(msg.senderAlias + ':' + msg.message+'\n')
+        self.gui.updateChat(msg.senderAlias + ':' + msg.message+'\n','black',msg.messageId)
         
 
 if __name__ == '__main__':

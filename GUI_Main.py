@@ -45,12 +45,12 @@ class GUI_MainPg:
 
     # -------- buttons/functions---------
     def sendPressed(self):
-        self.updateChat(self.mainText.get() + '\n')
+        self.updateChat(self.mainText.get() + '\n','blue',CommonUtil.createID())
         self.messageQueue.Push(self.mainText.get())
         self.mainText.delete(0, END)
 
     def enter(self, event):
-        self.updateChat(self.mainText.get() + '\n')
+        self.updateChat(self.mainText.get() + '\n','blue',CommonUtil.createID())
         self.messageQueue.Push(self.mainText.get())
         self.mainText.delete(0, END)
         # the function for the room join enter key being pushed.
@@ -61,7 +61,7 @@ class GUI_MainPg:
         self.textField.config(state=NORMAL)
 
         self.textField.insert(END, string, msgID)
-        self.textField.tag_configure(msgID, fg=color)
+        self.textField.tag_configure(msgID, foreground=color)
         self.textField.config(state=DISABLED)
 
     def updateRooms(self, string):
