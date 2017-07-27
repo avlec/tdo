@@ -14,23 +14,31 @@ class DatabaseManager:
     # Lookup Commands
 
     def lookupUser(self, identifier, column="id"):
-        self.cursor.execute('''SELECT * FROM tdo.public.messages
-                                               WHERE %s=%s''', (column, identifier))
+        self.cursor.execute('''SELECT * FROM tdo.public.users
+                                               WHERE %s=%s;''', (column, identifier))
         return self.cursor.fetchone()
 
+    def lookupUsers(self):
+        self.cursor.execute('''SELECT * FROM tdo.public.users;''')
+        return self.cursor.fetchall()
+
     def lookupChannel(self, identifier, column="id"):
-        self.cursor.execute('''SELECT * FROM tdo.public.messages
-                                               WHERE %s=%s''', (column, identifier))
+        self.cursor.execute('''SELECT * FROM tdo.public.channels
+                                               WHERE %s=%s;''', (column, identifier))
         return self.cursor.fetchone()
+
+    def lookupChannels(self):
+        self.cursor.execute('''SELECT * FROM tdo.public.channels;''')
+        return self.cursor.fetchall()
 
     def lookupMessage(self, identifier, column="id"):
         self.cursor.execute('''SELECT * FROM tdo.public.messages
-                                       WHERE %s=%s''', (column, identifier))
+                                       WHERE %s=%s;''', (column, identifier))
         return self.cursor.fetchone()
 
     def lookupMessages(self, identifier, column="id"):
         self.cursor.execute('''SELECT * FROM tdo.public.messages
-                                       WHERE %s=%s''', (column, identifier))
+                                       WHERE %s=%s;''', (column, identifier))
         return self.cursor.fetchall()
 
     # Create methods
@@ -75,7 +83,7 @@ class DatabaseManager:
         :return:
         """
         self.cursor.execute('''UPDATE channels SET alias=%s, password=%s
-                               WHERE id=%s''', (name,password,userid))
+                               WHERE id=%s;''', (name,password,userid))
         self.connection.commit()
     #
 
@@ -87,7 +95,7 @@ class DatabaseManager:
         :return: None
         """
         self.cursor.execute("""UPDATE channels SET permissions=%s
-                               WHERE id=%s""", (permissions, channelid))
+                               WHERE id=%s;""", (permissions, channelid))
         self.connection.commit()
 
     def appendBlockedChannel(self, channelid, userid):
@@ -98,7 +106,7 @@ class DatabaseManager:
         :return:
         """
         self.cursor.execute("""UPDATE channels SET blocked_members = array_append(blocked_members, %s)
-                               WHERE id=%s""", (userid, channelid))
+                               WHERE id=%s;""", (userid, channelid))
         self.connection.commit()
 
     def removeBlockedUser(self, channelid, userid):
@@ -109,5 +117,5 @@ class DatabaseManager:
         :return:
         """
         self.cursor.execute("""UPDATE channels SET blocked_members = array_remove(blocked_members, %s)
-                               WHERE id=%s""", (userid, channelid))
+                               WHERE id=%s;""", (userid, channelid))
         self.connection.commit()

@@ -6,15 +6,16 @@ import functools
 import time
 import re
 from messages.Message import Message as Message
-from database.databaseinterface import databaseinterface as db
+from database.databaseinterface import databaseinterface
 #welcom message sent to every user apon login
 def welcome_message():
     msg = Message('0000000000000000', '0000000000000000', 'server', '0000000000000000', 'welcome to TDO communication services','message')
     return msg
 
+db = databaseinterface()
 
 
-class user:
+class User:
     def __init__(self, alias, userid, inport,outport):
         self.alias = alias
         self.id = userid
@@ -63,7 +64,7 @@ class Server:
         self.Inbound = CommonUtil.Queue()
         self.Error = CommonUtil.Queue()
         self.Channels = []
-        self.Channels.append(Channel.createNew('General', '011'))
+        self.Channels.append(Channel('General','011','0000000000000000'))
         self.handler = self.PortHandler()
         self.users = []
 
@@ -102,6 +103,7 @@ class Server:
                     # for loop runs over every command type, only one matches, running inner if  once for processing
                     for command in CommonUtil.commands:
                         regex = re.match(CommonUtil.commands[command], msg.message)
+                        print regex.group(0)
                         if regex:
                             if command == 'join':
                                 ch = db.getChannel(regex.group(0))
@@ -191,7 +193,7 @@ if __name__ == '__main__':
         # starting threads to manage connection
         server.Outbound[p1] = CommonUtil.Queue()
         server.Outbound[p1].Push(welcome_message())
-        server.users.append(user('', newuserid, p1, p2))
+        server.users.append(User('', newuserid, p1, p2))
         threading._start_new_thread(CommonUtil.outbound_connection_handler, (p1, functools.partial(server.send, server),server.error,))
         time.sleep(0.05)
         threading._start_new_thread(CommonUtil.inbound_connection_handler, (p2, functools.partial(server.enqueue, server),server.error,))

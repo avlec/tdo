@@ -1,12 +1,24 @@
 import re
 from database.DatabaseManager import DatabaseManager as DatabaseManager
-from Server import user, Channel
+
 
 # methods return error messages if they did not complete action, none if successful
 class databaseinterface:
 
     def __init__(self):
         self.dbmanager = DatabaseManager('api','password')
+
+    def getChannels(self):
+        """
+        :return: List of all channels
+        """
+        return self.dbmanager.lookupChannels()
+
+    def getUsers(self):
+        """
+        :return: List of all users
+        """
+        return self.dbmanager.lookupUsers()
 
     def newUser(self, user):
         """
@@ -33,7 +45,7 @@ class databaseinterface:
         :return: User object
         """
         (id, alias, password) = self.dbmanager.lookupUser(userid)
-        return user(alias, id, None, None)
+        return (alias, id, None, None)
 
     def getUserAlias(self, alias):
         """
@@ -42,7 +54,7 @@ class databaseinterface:
         :return: User object
         """
         (id, alias, password) = self.dbmanager.lookupUser(alias, "alias")
-        return user(alias, id, None, None)
+        return (alias, id, None, None)
 
     def newChannel(self, channel):
         """
@@ -50,7 +62,7 @@ class databaseinterface:
         :param channel: Channel object
         :return:
         """
-        self.dbmanager.createChannel((channel.id, channel.name, channel.users[0], channel.permisions))
+        self.dbmanager.createChannel((channel.id, channel.name, channel.permisions))
 
     def getChannel(self, channel):
         """
@@ -59,7 +71,7 @@ class databaseinterface:
         :return:
         """
         (id, name, permissions, blocked_users) = self.dbmanager.lookupChannel(channel)
-        return Channel(name, permissions, id, blocked_users)
+        return (name, permissions, id, blocked_users)
 
     def change_default_permisions(self, channel, permissions):
         regex = re.match(r'([01]{3})',permissions)
