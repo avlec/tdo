@@ -5,11 +5,11 @@ import unittest
 # TODO add test cases for commands
 class TestMessageHandlerMethods(unittest.TestCase):
 
-    def setUp(self):
+    def test_client_command_1(self):
         pass
 
-    def tearDown(self):
+    def test_client_command_2(self):
         pass
 
-    def test_creation(self):
+    def test_client_command_3(self):
         pass
