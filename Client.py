@@ -16,22 +16,23 @@ class Client:
     def __init__(self):
         self.id = '0000000000000000'
         self.currentChannel = '0000000000000000'
-        self.alias = 'bob' + ''.join(random.choice(string.ascii_uppercase) for _ in range(3))
+        #self.alias = 'bob' + ''.join(random.choice(string.ascii_uppercase) for _ in range(3))
         root2 = Tkinter.Tk()
         self.guiL = GUI_Main.login(root2)
+		
 		#starting log in screeen gui
         root2.mainloop()
+        self.alias = self.guiL.username
         self.gui = None
         threading._start_new_thread(self.chat_client,())
         
 
 	#starting the gui for the chat
     def chat_client(self):
-        
-
         root = Tkinter.Tk()
         self.gui = GUI_Main.GUI_MainPg(root)
         root.mainloop()
+		
 	#checks if comman is valid whe / is used
     def command(self,str):
         #regex objects for each command

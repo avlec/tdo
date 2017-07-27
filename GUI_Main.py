@@ -80,7 +80,7 @@ class login:
     def __init__(self, master):
         self.master = master
         self.submit = Button(self.master, text="Login", command=self.loginButton)
-
+        self.username = None
         self.Title = Label(self.master, text="TDO")
 
         # img = PhotoImage(file='eggsml.png')
@@ -99,11 +99,11 @@ class login:
 
     # ----- button functions -------
     def loginButton(self):
-        print(self.field1.get())
+        self.username=self.field1.get()
         self.master.destroy()
 
     def enter(self, event):
-        print(self.field1.get())
+        self.username=self.field1.get()
         self.master.destroy()
 
     def on_closing(self):

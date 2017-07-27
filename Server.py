@@ -184,10 +184,19 @@ if __name__ == '__main__':
         print('Got a connection from %s' % str(addr))
         p1 = server.handler.port.pop()
         p2 = server.handler.port.pop()
-        newuserid=CommonUtil.createID()
-
+        
+        alias = clientsocket.recv(1024)
+        user = db.getUserAlias(alias)
+        
+        if user:
+            user = User(user[0], user[1], p1, p2)
+            uID = user[2]
+        else:
+            uID=CommonUtil.createID()
+            user = User(alias,uID,p1,p2)
+            db.newUser(user)
         # sending the client the information on ports used
-        k = str(newuserid) + '|' + str(p1)+'|'+str(p2)
+        k = str(uID) + '|' + str(p1)+'|'+str(p2)
         clientsocket.send(k.encode('utf8'))
 
         # starting threads to manage connection
