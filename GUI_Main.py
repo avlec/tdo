@@ -12,7 +12,7 @@ class GUI_MainPg:
         # title
         self.title = Label(self.frame, text="TDO")
         # the field with messages deploying
-        self.textField = Text(self.frame, width=35, height=13)
+        self.textField = Text(self.frame, width=45, height=13)
         # the field with rooms to join visible
         self.roomName = Text(self.frame, width=25, height=6)
         # send button
@@ -30,14 +30,14 @@ class GUI_MainPg:
         # the placement of objects in the grid
         self.title.grid(row=0, columnspan=7)
         self.textField.grid(row=1, columnspan=2, rowspan=3)
-        self.roomName.grid(row=1, column=4, columnspan=2)
-        self.sp.grid(column=3, row=2)
+        self.roomName.grid(row=1, column=5, columnspan=2)
+        self.sp.grid(column=4, row=2)
 
         # self.room2Join.grid(row=2,column=3, sticky= E)
         # self.roomJoin.grid(row=2,column=4, sticky = W)
         self.mainText.grid(row=4, column=0, sticky=E)
         self.send.grid(row=4, column=1, sticky=W)
-        self.online.grid(row=3, column=4, columnspan=2)
+        self.online.grid(row=3, column=5, columnspan=2)
 
         self.textField.config(state=DISABLED)
         self.roomName.config(state=DISABLED)
