@@ -12,7 +12,7 @@ class GUI_MainPg:
         # title
         self.title = Label(self.frame, text="TDO")
         # the field with messages deploying
-        self.textField = Text(self.frame, width=45, height=13)
+        self.textField = Text(self.frame, width=48, height=13)
         # the field with rooms to join visible
         self.roomName = Text(self.frame, width=25, height=6)
         # send button
