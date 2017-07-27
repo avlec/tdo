@@ -32,6 +32,7 @@ class Client:
     def chat_client(self):
         root = Tkinter.Tk()
         self.gui = GUI_Main.GUI_MainPg(root)
+	root.protocol('WM_DELETE_WINDOW', on_closing)
         root.mainloop()
 		
 	#checks if comman is valid whe / is used
