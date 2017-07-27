@@ -12,7 +12,7 @@ class GUI_MainPg:
         # title
         self.title = Label(self.frame, text="TDO")
         # the field with messages deploying
-        self.textField = Text(self.frame, width=35, height=13)
+        self.textField = Text(self.frame, width=45, height=13)
         # the field with rooms to join visible
         self.roomName = Text(self.frame, width=25, height=6)
         # send button
@@ -30,14 +30,14 @@ class GUI_MainPg:
         # the placement of objects in the grid
         self.title.grid(row=0, columnspan=7)
         self.textField.grid(row=1, columnspan=2, rowspan=3)
-        self.roomName.grid(row=1, column=4, columnspan=2)
-        self.sp.grid(column=3, row=2)
+        self.roomName.grid(row=1, column=5, columnspan=2)
+        self.sp.grid(column=4, row=2)
 
         # self.room2Join.grid(row=2,column=3, sticky= E)
         # self.roomJoin.grid(row=2,column=4, sticky = W)
         self.mainText.grid(row=4, column=0, sticky=E)
         self.send.grid(row=4, column=1, sticky=W)
-        self.online.grid(row=3, column=4, columnspan=2)
+        self.online.grid(row=3, column=5, columnspan=2)
 
         self.textField.config(state=DISABLED)
         self.roomName.config(state=DISABLED)
@@ -45,12 +45,12 @@ class GUI_MainPg:
 
     # -------- buttons/functions---------
     def sendPressed(self):
-        self.updateChat(self.mainText.get() + '\n')
+        self.updateChat(self.mainText.get() + '\n','blue',CommonUtil.createID())
         self.messageQueue.Push(self.mainText.get())
         self.mainText.delete(0, END)
 
     def enter(self, event):
-        self.updateChat(self.mainText.get() + '\n')
+        self.updateChat(self.mainText.get() + '\n','blue',CommonUtil.createID())
         self.messageQueue.Push(self.mainText.get())
         self.mainText.delete(0, END)
         # the function for the room join enter key being pushed.
@@ -59,9 +59,8 @@ class GUI_MainPg:
 
     def updateChat(self, string , color, msgID):
         self.textField.config(state=NORMAL)
-
         self.textField.insert(END, string, msgID)
-        self.textField.tag_configure(msgID, fg=color)
+        self.textField.tag_configure(msgID, foreground=color)
         self.textField.config(state=DISABLED)
 
     def updateRooms(self, string):
@@ -73,7 +72,8 @@ class GUI_MainPg:
         self.online.config(state=NORMAL)
         self.online.insert(END, string)
         self.online.config(state=DISABLED)
-
+    def closing(self):
+        self.root.destroy()
 
 # *********** the Login Page ***********
 class login:
@@ -105,3 +105,6 @@ class login:
     def enter(self, event):
         print(self.field1.get())
         self.master.destroy()
+
+    def on_closing(self):
+        self.root.destroy()
