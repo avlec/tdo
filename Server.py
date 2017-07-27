@@ -7,7 +7,7 @@ import time
 import re
 from messages.Message import Message as Message
 from database.databaseinterface import databaseinterface as db
-
+#welcom message sent to every user apon login
 def welcome_message():
     msg = Message('0000000000000000', '0000000000000000', 'server', '0000000000000000', 'welcome to TDO communication services','message')
     return msg
@@ -35,7 +35,7 @@ class Channel:
         self.id = id
         self.permisions = permissions
 
-
+	#used to create a new channel, init is used to fetch existing one from db
     @staticmethod
     def createNew(name, permissions):
         if name == 'General':
@@ -168,12 +168,14 @@ class Server:
 if __name__ == '__main__':
     server = Server()
     threading._start_new_thread(server.dequeue, ())  # starts thread for handling outbound messages
+	
     # setting up port for connecting to clients
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = socket.gethostname()
     port = 9999
     server_socket.bind((host, port))
     server_socket.listen(10)
+	
     #while loop for handling new connections
     while True:
         clientsocket, addr = server_socket.accept()

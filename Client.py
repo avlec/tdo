@@ -11,27 +11,28 @@ import functools
 import GUI_Main
 from messages.Message import Message as Message
 
-
+#main class for client
 class Client:
     def __init__(self):
         self.id = '0000000000000000'
         self.currentChannel = '0000000000000000'
-        self.alias = 'bob' + ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(3))
+        self.alias = 'bob' + ''.join(random.choice(string.ascii_uppercase) for _ in range(3))
         root2 = Tkinter.Tk()
         self.guiL = GUI_Main.login(root2)
+		#starting log in screeen gui
         root2.mainloop()
         self.gui = None
         threading._start_new_thread(self.chat_client,())
         
 
-
+	#starting the gui for the chat
     def chat_client(self):
         
 
         root = Tkinter.Tk()
         self.gui = GUI_Main.GUI_MainPg(root)
         root.mainloop()
-
+	#checks if comman is valid whe / is used
     def command(self,str):
         #regex objects for each command
         for command in CommonUtil.commands:
@@ -39,7 +40,7 @@ class Client:
                 print('command sent')
                 return True
         return False
-        
+    #gets user input, handler function for outbound connection
     def get_input(self, p):
         while True:
             msg = None
@@ -53,14 +54,14 @@ class Client:
                 else:
                     return Message(CommonUtil.createID(), self.id, self.alias, self.currentChannel, msg, 'message').encode()
                 
-            
+    #error function for inbound and outbound connections
     @staticmethod
     def error(port):
         errMessage = Message('0000000000000000', '0000000000000000', 'server', '0000000000000000', 'connection to server lost, shuting down','message').encode()
         #print(errMessage)
         C.print_message(errMessage)
         sys.exit(0)
-
+	#handler function for inbound connection
     def print_message(self,data):
         msg = Message.decode(data)
         #print(msg.senderAlias + ':' + msg.message)
@@ -83,8 +84,6 @@ if __name__ == '__main__':
     threading._start_new_thread(CommonUtil.outbound_connection_handler, (int(p1), C.get_input,C.error,))
     time.sleep(0.05)
     threading._start_new_thread(CommonUtil.inbound_connection_handler, (int(p2), C.print_message,C.error,))
-    #uncomment to run gui 
-    #C.chat_client()
 
     while True:
         pass
