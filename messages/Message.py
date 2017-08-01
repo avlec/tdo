@@ -2,13 +2,11 @@ from messages.MessageEncoding import MessageEncoder, MessageDecoder
 
 
 class Message:
-    def __init__(self, messageId, messageSenderId, senderAlias, messageChannelId, message, messageType):
+    def __init__(self, messageId, messageSenderId, senderAlias, message):
         self.messageId = messageId
         self.messageSenderId = messageSenderId
         self.senderAlias = senderAlias
-        self.messageChannelId = messageChannelId
         self.message = message
-        self.messageType = messageType
         self.validate()
 
     # someone do this

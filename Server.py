@@ -6,52 +6,101 @@ import functools
 import time
 import re
 from messages.Message import Message as Message
-from database.databaseinterface import databaseinterface
-#welcom message sent to every user apon login
 def welcome_message():
-    msg = Message('0000000000000000', '0000000000000000', 'server', '0000000000000000', 'welcome to TDO communication services','message')
+    msg = Message('0000000000000000', '0000000000000000', 'server', 'welcome to TDO communication services')
     return msg
 
-db = databaseinterface()
 
 
 class User:
-    def __init__(self, alias, userid, inport,outport):
+    def __init__(self, alias, userID, inport,outport):
         self.alias = alias
-        self.id = userid
+        self.id = userID
         self.inport = inport
         self.outport = outport
-        self.password ='password123'
-        self.currentchannel='0000000000000000'
         self.channels = []
-        self.blockedChannels = []
-      #will add method for changing inport/outport in db
 
-# todo implement DB connection
+    @staticmethod
+    def newUser(alias, inport, outport):
+        if not alias:#check db if user exists
+            pass
+        else:
+            return User(alias, CommonUtil.createID(), inport, outport)
+
+    @staticmethod
+    def getUser(users, userID):
+        for u in users:
+            if u.id == userID:
+                return u
+        return None
+
+
 class Channel:
-    def __init__(self, name, permissions, id, blockedUsers=[]):
+    def __init__(self, name, permissions, channelID = None):
         self.name = name
+        self.admin = []
         self.blockedUsers = []
         self.users = []
-        self.id = id
+        if channelID:
+            self.id = channelID
+        else:
+            self.id = CommonUtil.createID()
         self.permisions = permissions
 
-	#used to create a new channel, init is used to fetch existing one from db
     @staticmethod
-    def createNew(name, permissions):
-        if name == 'General':
-            id = '0000000000000000'
-        else:
-            id = CommonUtil.createID()
-        ch = Channel(name, permissions, id)
-        regex = re.match(r'([01]{3})', permissions)
-        if regex:
-           ch.permisions = permissions
-        else:
-            ch.permisions = '011'
-        db.newChannel(ch)
-        return ch
+    def getUser(channels,userid):
+        for ch in channels:
+            for u in ch.users:
+                if u.id ==userid:
+                    return u
 
+    @staticmethod
+    def getChannel(channels, channelName):
+        for ch in channels:
+            if ch.name == channelName:
+                return ch
+        return None
+
+    @staticmethod
+    def getUserChannel(channels,userID):
+        for ch in channels:
+            for u in ch.users:
+                if u.id == userID:
+                    return u
+        return None
+
+    @staticmethod
+    def getUserAliasChannel(channels,userAlias):
+        for ch in channels:
+            for u in ch.users:
+                if u:
+                    if u.alias == userAlias:
+                        return u
+        return None
+
+
+    @staticmethod
+    def getChannelWithUser(channels,userid):
+        for ch in channels:
+            for u in ch.users:
+                if userid == u.id:
+                    return ch
+        return None
+
+
+    @staticmethod
+    def removeChannel(channels, channelID):
+        ch = Channel.getChannel(channels, channelID)
+        channels.remove(ch)
+
+    @staticmethod
+    def moveUser(channels, channel, userid):
+        for ch in channels:
+            for u in ch.users:
+                if u.id == userid:
+                    ch.users.remove(u)
+                    channel.users.append(u)
+                    return None
 
 
 # ----------------------------------------------------------------------------------------------------------------------------------
@@ -64,9 +113,11 @@ class Server:
         self.Inbound = CommonUtil.Queue()
         self.Error = CommonUtil.Queue()
         self.Channels = []
-        self.Channels.append(Channel('General','011','0000000000000000'))
+        self.general = Channel('General', '011', '0000000000000000')
+        self.Channels.append(self.general)
         self.handler = self.PortHandler()
         self.users = []
+
 
     class PortHandler:
         def __init__(self):
@@ -79,6 +130,7 @@ class Server:
     def send(s, p):
         msg = s.Outbound[p].Pop()
         if msg:
+            print msg.message
             return msg.encode()
             
     @staticmethod
@@ -95,115 +147,147 @@ class Server:
         msg = Message.decode(d)
         self.Inbound.Push(msg)
 
+    def SendCommand(self, msg):
+        for ch in self.Channels:
+            for u in ch.users:
+                self.Outbound[u.inport].Push(msg)
+
     def dequeue(self):
         while True:
             msg = self.Inbound.Pop()
+
             if msg:  # pop returns none if nothing is on que, not entering processing
-                if msg.messageType == 'command':  # checking if message is a command
+                if CommonUtil.command(msg.message,CommonUtil.commands):  # checking if message is a command
                     # for loop runs over every command type, only one matches, running inner if  once for processing
                     for command in CommonUtil.commands:
                         regex = re.match(CommonUtil.commands[command], msg.message)
-                        print regex.group(0)
                         if regex:
                             if command == 'join':
-                                ch = db.getChannel(regex.group(0))
+                                ch = Channel.getChannel(self.Channels, regex.group(1))
+                                u = Channel.getUser(self.Channels,msg.messageSenderId)
                                 if ch:
-                                    error= db.addUser(msg.messageChannelId, msg.messageSenderId)  # returns none if successful
-                                    if error:
-                                        pass # send error
-
-                            if command == 'create':
-                                ch = db.getChannel(regex.group(0))
-                                if ch:
-                                    pass  # send user duplicate channel name error msg
-                                else:
-                                    c = Channel.createNew(regex.group(0), regex.group(1))
-                                    error = db.newChannel(c)
-                                    if error:
-                                        pass # send error message
+                                    if u not in ch.blockedUsers:
+                                        ch.moveUser(self.Channels, ch, msg.messageSenderId)
                                     else:
-                                        db.addUser(c.id, msg.messageSenderId)
-
+                                        self.Outbound[u.inport].Push('you are blocked from this channel')
+                                else:
+                                    pass
+                            if command == 'create':
+                                ch = Channel.getChannel(self.Channels, regex.group(1))
+                                u = Channel.getUser(self.Channels, msg.messageSenderId)
+                                if ch or not u:
+                                    pass#send user error message
+                                else:
+                                    ch = Channel(regex.group(1), regex.group(2))
+                                    ch.admin.append(u)
+                                    self.Channels.append(ch)
+                                    com = '/addChannel '+regex.group(1)
+                                    m = Message(0000000000000000, 0000000000000000, 'server', com)
+                                    self.SendCommand(m)
+                                ch.moveUser(self.Channels, ch, msg.messageSenderId)
                             if command == 'set_alias':
-                                if db.getUserAlias(regex.group(0)):
-                                    pass # send error message
+                                u = Channel.getUserAliasChannel(self.Channels,regex.group(1))
+                                if u:
+                                    pass#send alias taken msg
                                 else:
-                                    u = None #will add user initialization
-                                    db.changeUser(msg.messageSenderId, u)
-
-                            if command == 'block':
-                                if db.userHasPermisions(msg.messageSenderId, msg.messageChannelId):
-                                    if db.getUser(regex.group(0)):
-                                        db.getChannel(msg.messageChannelId).blockUser(db.getUser(regex.group(0)))
-
-                            if command == 'unblock':
-                                if db.userHasPermisions(msg.messageSenderId, msg.messageChannelId):
-                                    if db.getUser(regex.group(0)):
-                                        db.UnblockUser(msg.messageChannelId, regex.group(0))
-
+                                    u = Channel.getUser(self.Channels, msg.messageSenderId)
+                                    if u:
+                                        u.alias = regex.group(1)
                             if command == 'delete':
-                                if db.userHasPermisions(msg.messageSenderId, msg.messageChannelId):
-                                    if db.deleteChannel(msg.messageChannelId):
-                                        pass#send error(unable to delete)
-                                else:
-                                    pass#send permissions error
+                                ch = Channel.getChannel(self.Channels, regex.group(1))
+                                u = Channel.getUser(self.Channels, msg.messageSenderId)
+                                if ch:
+                                    if u in ch.admin:
+                                        self.general.users.extend(ch.users)
+                                        self.Channels.remove(ch)
+                                        com = '/removeChannel '+regex.group(1)
+                                        m = Message(0000000000000000, 0000000000000000, 'server', com)
+                                        self.SendCommand(m)
 
                             if command == 'chmod':
-                                if db.userHasPermisions(db.getUser(msg.messageSenderId), db.getChannel(msg.messageChannelId)):
-                                    if regex.group(0) == msg.messageChannelId:
-                                        db.setChannelPermisions(msg.messageChannelId)
-                                    elif db.IsMember(msg.messageChannelId, msg.messageChannelId):
-                                        db.SetChannelPermisions(msg.messageChannelId, msg.messageChannelId, regex.group(1))
-                                    else:
-                                        pass  # send error msg
+                                admin = Channel.getUser(self.Channels, msg.messageSenderId)
+                                u = Channel.getUser(self.Channels, regex.group(1))
+                                ch = Channel.getChannelWithUser(self.Channels, msg.messageSenderId)
+                                if ch:
+                                    if admin in ch.admin:
+                                        ch.admin.append(u)
+                            if command == 'block':
+                                admin = Channel.getUser(self.Channels, msg.messageSenderId)
+                                u = Channel.getUser(self.Channels, regex.group(1))
+                                ch = Channel.getChannelWithUser(self.Channels, msg.messageSenderId)
+                                if ch:
+                                    if admin in ch.admin:
+                                        if u not in ch.blockedUsers:
+                                            ch.blockedUsers.append(u)
+                                            Channel.moveUser(self.Channels, self.general, regex.group(1))
+                            if command == 'unblock':
+                                admin = Channel.getUser(self.Channels, msg.messageSenderId)
+                                u = Channel.getUser(self.Channels, regex.group(1))
+                                ch = Channel.getChannelWithUser(self.Channels, msg.messageSenderId)
+                                if ch:
+                                    if admin in ch.admin:
+                                        if u in ch.blockedUsers:
+                                            ch.blockedUsers.remove(u)
 
                         else:
                             pass  # send command not found error message
 
                 else:
-                    print(msg.message)
-                    for u in self.users:
-                        if u.id != msg.messageSenderId and u.currentchannel == msg.messageChannelId:
-                            self.Outbound[u.inport].Push(msg)
+                    msg.senderAlias = Channel.getUser(self.Channels, msg.messageSenderId).alias
+                    ch = Channel.getChannelWithUser(self.Channels, msg.messageSenderId)
+                    print(ch.name + '|' + msg.message + ":" + msg.message)
+                    if ch:
+                        for u in ch.users:
+                            if u.id != msg.messageSenderId:
+                                self.Outbound[u.inport].Push(msg)
 
 
 if __name__ == '__main__':
+
     server = Server()
-    threading._start_new_thread(server.dequeue, ())  # starts thread for handling outbound messages
-	
+    dequeue = threading.Thread(target=server.dequeue, args=())
+    dequeue.start()
     # setting up port for connecting to clients
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = socket.gethostname()
     port = 9999
     server_socket.bind((host, port))
     server_socket.listen(10)
-	
-    #while loop for handling new connections
+    # while loop for handling new connections
     while True:
         clientsocket, addr = server_socket.accept()
         print('Got a connection from %s' % str(addr))
         p1 = server.handler.port.pop()
         p2 = server.handler.port.pop()
-        
-        alias = clientsocket.recv(1024)
-        user = db.getUserAlias(alias)
-        
-        if user:
-            user = User(user[0], user[1], p1, p2)
-            uID = user[2]
-        else:
-            uID=CommonUtil.createID()
-            user = User(alias,uID,p1,p2)
-            db.newUser(user)
-        # sending the client the information on ports used
-        k = str(uID) + '|' + str(p1)+'|'+str(p2)
-        clientsocket.send(k.encode('utf8'))
 
-        # starting threads to manage connection
+        alias = clientsocket.recv(1024)
+        newUser = User.newUser(alias, p1, p2)
+        if not Channel.getUserAliasChannel(server.Channels, alias):
+            server.general.users.append(newUser)
+        else:
+            print('duplicate user')
+        # sending the client the information on ports used
+        k = str(p1)+'|'+str(p2)+'|'+newUser.id
+        clientsocket.send(k.encode('utf8'))
         server.Outbound[p1] = CommonUtil.Queue()
         server.Outbound[p1].Push(welcome_message())
-        server.users.append(user)
-        threading._start_new_thread(CommonUtil.outbound_connection_handler, (p1, functools.partial(server.send, server),server.error,))
-        time.sleep(0.05)
-        threading._start_new_thread(CommonUtil.inbound_connection_handler, (p2, functools.partial(server.enqueue, server),server.error,))
+        for ch in server.Channels:
+            com = '/addChannel '+ch.name
+            m = Message(0000000000000000, 0000000000000000, 'server', com)
+            server.Outbound[p1].Push(m)
+            for u in ch.users:
+                com = '/addUser '+u.alias
+                m = Message(0000000000000000, 0000000000000000, 'server', com)
+                server.Outbound[p1].Push(m)
+
+
+        com = '/addUser '+alias
+        m = Message(0000000000000000, 0000000000000000, 'server', com)
+        server.SendCommand(m)
         clientsocket.close()
+        outbound = threading.Thread(target=CommonUtil.outbound_connection_handler, args=(p1, functools.partial(server.send, server)),)
+        inbound = threading.Thread(target=CommonUtil.inbound_connection_handler, args=(p2, functools.partial(server.enqueue, server)),)
+        # starting threads to manage connection
+        outbound.start()
+        time.sleep(0.05)
+        inbound.start()
