@@ -23,7 +23,9 @@ class Client:
         self.activeUsers = []
         self.activeChannels = []
         self.gui = None
-        threading._start_new_thread(self.chat_client, ())
+        client = threading.Thread(target=self.chat_client, args=(),)
+        client.daemon = False
+        client.start()
 
     # starting the gui for the chat
     def chat_client(self):
@@ -97,10 +99,9 @@ if __name__ == '__main__':
     print('my port is ' + p1 + '' and '' + p2)
     outbound = threading.Thread(target=CommonUtil.outbound_connection_handler, args=(int(p1), C.get_input),)
     inbound = threading.Thread(target=CommonUtil.inbound_connection_handler, args=(int(p2), C.print_message),)
+    outbound.daemon = True
+    inbound.daemon = True
     outbound.start()
     time.sleep(0.05)
     inbound.start()
 
-    while True:
-        pass
-    sys.exit(0)
