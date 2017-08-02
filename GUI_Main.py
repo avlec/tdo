@@ -66,17 +66,17 @@ class GUI_MainPg:
         self.textField.config(state=DISABLED)
 
     def updateRooms(self, string):
-        self.roomName.config(state=NORMAL)
-        
+        self.roomName.config(state=NORMAL)      
         self.roomName.clear()
-        self.roomName.insert(END, string)
-
+        for line in string:
+            self.roomName.insert(END, line)
         self.roomName.config(state=DISABLED)
 
     def updateOnline(self, string):
         self.online.config(state=NORMAL)
         self.online.clear()
-        self.online.insert(END, string)
+        for line in string:
+            self.online.insert(END, line)
         self.online.config(state=DISABLED)
     def on_closing(self):
         self.root.destroy()
