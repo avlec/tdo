@@ -10,4 +10,5 @@ do
         do script "cd /Users/.../tdo/client
          python27 client
     end tell'
+    let i=i+1
 done
