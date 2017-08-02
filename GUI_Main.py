@@ -67,11 +67,15 @@ class GUI_MainPg:
 
     def updateRooms(self, string):
         self.roomName.config(state=NORMAL)
+        
+        self.roomName.clear()
         self.roomName.insert(END, string)
+
         self.roomName.config(state=DISABLED)
 
     def updateOnline(self, string):
         self.online.config(state=NORMAL)
+        self.online.clear()
         self.online.insert(END, string)
         self.online.config(state=DISABLED)
     def on_closing(self):
