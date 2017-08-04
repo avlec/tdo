@@ -68,7 +68,7 @@ class GUI_MainPg:
     def updateRooms(self, string):
         self.roomName.config(state=NORMAL)
 
-        self.online.insert(END, "test")
+        
         self.roomName.delete('1.0',END)
         for line in string:
             self.roomName.insert(END, line)
@@ -76,7 +76,7 @@ class GUI_MainPg:
 
     def updateOnline(self, string):
         self.online.config(state=NORMAL)
-        self.online.insert(END, "test")
+        
         self.online.delete('1.0',END)
         for line in string:
             self.online.insert(END, line)
