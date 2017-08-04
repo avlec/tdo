@@ -35,22 +35,23 @@ class connection_error(Exception):
 # ----------------------------------------------------------------------------------------------------------------------------------
 
 
-def outbound_connection_handler(port, handler):
-    #try:
+def outbound_connection_handler(port, event, handler):
+    try:
         print('outbound port is :' + str(port) + '\n')
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         host = socket.gethostname()
         s.bind((host, port))
         s.listen(2)
         serversocket,addr = s.accept()
-        while True:
+        while not event.is_set:
             msg = handler(port)
             if msg:
-                print msg + '\\\\\\\\\\\\\\\\\\' + str(port)
                 serversocket.send(msg)
-        serversocket.close()
-    #except:
-        #error()
+
+    except:
+        pass
+    event.is_set = True
+    serversocket.close()
 
 def command(str,com):
         # regex objects for each command
@@ -59,27 +60,28 @@ def command(str,com):
                 return True
         return False
 
-def inbound_connection_handler(port, handler):
-    #try:
+def inbound_connection_handler(port,event, handler):
+    try:
         print('inbound port is :' + str(port) + '\n')
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         host = socket.gethostname()
         addr = (host, port)
-        while True:
+        while not event.is_set:
+
             try:
                 s.connect(addr)
                 break
             except:
                 pass
-        while True:
+        while not event.is_set:
             data = s.recv(1024)
-            print data + '\\\\\\\\\\\\\\\\\\'+ str(port)
-            if not data:
-                raise connection_error('invalid data')
-            handler(data.decode('utf8'))
-        s.close()
-    #except:
-        #error()
+            if data:
+                handler(data.decode('utf8'))
+    except:
+        pass
+    event.is_set = True
+    s.close()
+
 
 def createID():
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16))
@@ -90,12 +92,14 @@ commands = {
     'block': re.compile(r'\/block (\w+)'),
     'unblock': re.compile(r'\/unblock (\w+)'),
     'delete': re.compile(r'\/delete (\w+)'),
-    'chmod': re.compile(r'\/chmod (\w+)')}
+    'chmod': re.compile(r'\/chmod (\w+)'),
+    'help': re.compile(r'\/help')}
 
 serverCommands = {
     'addUser': re.compile(r'\/addUser (\w+)'),
     'removeUser':re.compile(r'\/removeUser (\w+)'),
     'addChannel': re.compile(r'\/addChannel (\w+)'),
     'removeChannel':re.compile(r'\/removeChannel (\w+)'),
-    'loginfailed':re.compile(r'\/duplicateUserAlias')}
+    'loginfailed':re.compile(r'\/duplicateUserAlias'),
+    'changealias':re.compile(r'\/changealias (\w+)')}
 

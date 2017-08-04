@@ -102,6 +102,12 @@ class Channel:
                     channel.users.append(u)
                     return None
 
+    @staticmethod
+    def removeUser(channels, user):
+        for ch in channels:
+            if user in ch.users:
+                ch.users.remove(user)
+                return
 
 # ----------------------------------------------------------------------------------------------------------------------------------
 # Server class and subclasses
@@ -110,6 +116,7 @@ class Channel:
 class Server:
     def __init__(self):
         self.Outbound = {}
+        self.connections = {}
         self.Inbound = CommonUtil.Queue()
         self.Error = CommonUtil.Queue()
         self.Channels = []
@@ -148,12 +155,24 @@ class Server:
         self.Inbound.Push(msg)
 
     def SendCommand(self, msg):
+        print msg.message
         for ch in self.Channels:
             for u in ch.users:
                 self.Outbound[u.inport].Push(msg)
 
     def dequeue(self):
         while True:
+            c = self.connections.copy()
+            for u in c:
+                if self.connections[u].is_set:
+                    Channel.removeUser(self.Channels, u)
+                    com = '/removeUser '+u.alias
+                    m = Message(0000000000000000, 0000000000000000, 'server', com)
+                    self.SendCommand(m)
+                    self.connections.pop(u)
+                    self.handler.port.append(u.inport)
+                    self.handler.port.append(u.outport)
+                    break
             msg = self.Inbound.Pop()
 
             if msg:  # pop returns none if nothing is on que, not entering processing
@@ -168,15 +187,23 @@ class Server:
                                 if ch:
                                     if u not in ch.blockedUsers:
                                         ch.moveUser(self.Channels, ch, msg.messageSenderId)
+                                        msg = Message(0000000000000000, 0000000000000000, 'server', 'user:'+Channel.getUser(self.Channels,msg.messageSenderId).alias+' joined the channel')
+                                        for u in ch.users:
+                                            if u.id != msg.messageSenderId:
+                                                self.Outbound[u.inport].Push(msg)
                                     else:
-                                        self.Outbound[u.inport].Push('you are blocked from this channel')
+                                        errMsg = Message(0000000000000000, 0000000000000000, 'server', 'you are blocked from this channel')
+                                        self.Outbound[u.inport].Push(errMsg)
                                 else:
-                                    pass
+                                    errMsg = Message(0000000000000000, 0000000000000000, 'server', 'channel not found')
+                                    self.Outbound[u.inport].Push(errMsg)
                             if command == 'create':
                                 ch = Channel.getChannel(self.Channels, regex.group(1))
                                 u = Channel.getUser(self.Channels, msg.messageSenderId)
                                 if ch or not u:
-                                    pass#send user error message
+                                    u = Channel.getUser(self.Channels, msg.messageSenderId)
+                                    helpMsg = Message(0000000000000000, 0000000000000000, 'server', 'channel with that name exists')
+                                    self.Outbound[u.inport].Push(helpMsg)
                                 else:
                                     ch = Channel(regex.group(1), regex.group(2))
                                     ch.admin.append(u)
@@ -188,11 +215,20 @@ class Server:
                             if command == 'set_alias':
                                 u = Channel.getUserAliasChannel(self.Channels,regex.group(1))
                                 if u:
-                                    pass#send alias taken msg
+                                    u = Channel.getUser(self.Channels, msg.messageSenderId)
+                                    errMsg = Message(0000000000000000, 0000000000000000, 'server', 'user with that alias exists')
+                                    server.Outbound[u.inport].Push(errMsg)
                                 else:
                                     u = Channel.getUser(self.Channels, msg.messageSenderId)
                                     if u:
+                                        com = Message(0000000000000000, 0000000000000000, 'server', '/removeUser '+u.alias)
+                                        self.SendCommand(com)
                                         u.alias = regex.group(1)
+                                        com = Message(0000000000000000, 0000000000000000, 'server', '/changealias '+regex.group(1))
+                                        server.Outbound[u.inport].Push(com)
+                                        com = Message(0000000000000000, 0000000000000000, 'server', '/addUser '+regex.group(1))
+                                        self.SendCommand(com)
+
                             if command == 'delete':
                                 ch = Channel.getChannel(self.Channels, regex.group(1))
                                 u = Channel.getUser(self.Channels, msg.messageSenderId)
@@ -203,6 +239,10 @@ class Server:
                                         com = '/removeChannel '+regex.group(1)
                                         m = Message(0000000000000000, 0000000000000000, 'server', com)
                                         self.SendCommand(m)
+                                    else:
+                                        errMsg = Message(0000000000000000, 0000000000000000, 'server', 'insufficient permissions')
+                                        self.Outbound[u.inport].Push(errMsg)
+
 
                             if command == 'chmod':
                                 admin = Channel.getUser(self.Channels, msg.messageSenderId)
@@ -211,31 +251,62 @@ class Server:
                                 if ch:
                                     if admin in ch.admin:
                                         ch.admin.append(u)
+                                    else:
+                                        errMsg = Message(0000000000000000, 0000000000000000, 'server', 'insufficient permissions')
+                                        self.Outbound[admin.inport].Push(errMsg)
                             if command == 'block':
                                 admin = Channel.getUser(self.Channels, msg.messageSenderId)
-                                u = Channel.getUser(self.Channels, regex.group(1))
+                                u = Channel.getUserAliasChannel(self.Channels, regex.group(1))
                                 ch = Channel.getChannelWithUser(self.Channels, msg.messageSenderId)
                                 if ch:
                                     if admin in ch.admin:
-                                        if u not in ch.blockedUsers:
-                                            ch.blockedUsers.append(u)
-                                            Channel.moveUser(self.Channels, self.general, regex.group(1))
+                                        print 'admin'
+                                        if u:
+                                            if u not in ch.blockedUsers:
+                                                ch.blockedUsers.append(u)
+                                                Channel.moveUser(self.Channels, self.general, regex.group(1))
+                                            else:
+                                                errMsg = Message(0000000000000000, 0000000000000000, 'server', 'user is already blocked')
+                                                self.Outbound[admin.inport].Push(errMsg)
+                                        else:
+                                            errMsg = Message(0000000000000000, 0000000000000000, 'server', 'user not found')
+                                            self.Outbound[admin.inport].Push(errMsg)
+                                    else:
+                                        if u:
+                                            errMsg = Message(0000000000000000, 0000000000000000, 'server', 'insufficient permissions')
+                                            self.Outbound[admin.inport].Push(errMsg)
+                                        else:
+                                            errMsg = Message(0000000000000000, 0000000000000000, 'server', 'user not found')
+                                            self.Outbound[admin.inport].Push(errMsg)
                             if command == 'unblock':
                                 admin = Channel.getUser(self.Channels, msg.messageSenderId)
                                 u = Channel.getUser(self.Channels, regex.group(1))
                                 ch = Channel.getChannelWithUser(self.Channels, msg.messageSenderId)
                                 if ch:
                                     if admin in ch.admin:
-                                        if u in ch.blockedUsers:
-                                            ch.blockedUsers.remove(u)
+                                        if u:
+                                            if u in ch.blockedUsers:
+                                                ch.blockedUsers.remove(u)
+                                            else:
+                                                errMsg = Message(0000000000000000, 0000000000000000, 'server', 'user is already not blocked')
+                                                self.Outbound[admin.inport].Push(errMsg)
+                                        else:
+                                            errMsg = Message(0000000000000000, 0000000000000000, 'server', 'user not found')
+                                            self.Outbound[admin.inport].Push(errMsg)
+                                    else:
+                                        errMsg = Message(0000000000000000, 0000000000000000, 'server', 'insufficient permissions')
+                                        self.Outbound[admin.inport].Push(errMsg)
 
-                        else:
-                            pass  # send command not found error message
+                            if command == 'help':
+                                u = Channel.getUser(self.Channels, msg.messageSenderId)
+                                s = 'hi'
+                                helpMsg = Message(0000000000000000, 0000000000000000, 'server', s)
+                                server.Outbound[u.inport].Push(helpMsg)
 
                 else:
                     msg.senderAlias = Channel.getUser(self.Channels, msg.messageSenderId).alias
                     ch = Channel.getChannelWithUser(self.Channels, msg.messageSenderId)
-                    print(ch.name + '|' + msg.message + ":" + msg.message)
+                    print(ch.name + '|' + msg.messageSenderId + ":" + msg.message)
                     if ch:
                         for u in ch.users:
                             if u.id != msg.messageSenderId:
@@ -276,17 +347,21 @@ if __name__ == '__main__':
             m = Message(0000000000000000, 0000000000000000, 'server', com)
             server.Outbound[p1].Push(m)
             for u in ch.users:
-                com = '/addUser '+u.alias
-                m = Message(0000000000000000, 0000000000000000, 'server', com)
-                server.Outbound[p1].Push(m)
+                if u.alias != alias:
+                    com = '/addUser '+u.alias
+                    m = Message(0000000000000000, 0000000000000000, 'server', com)
+                    server.Outbound[p1].Push(m)
 
 
         com = '/addUser '+alias
         m = Message(0000000000000000, 0000000000000000, 'server', com)
         server.SendCommand(m)
         clientsocket.close()
-        outbound = threading.Thread(target=CommonUtil.outbound_connection_handler, args=(p1, functools.partial(server.send, server)),)
-        inbound = threading.Thread(target=CommonUtil.inbound_connection_handler, args=(p2, functools.partial(server.enqueue, server)),)
+        event = threading.Event()
+        event.is_set = False
+        server.connections[newUser] = event
+        outbound = threading.Thread(target=CommonUtil.outbound_connection_handler, args=(p1, event, functools.partial(server.send, server)),)
+        inbound = threading.Thread(target=CommonUtil.inbound_connection_handler, args=(p2, event, functools.partial(server.enqueue, server)),)
         # starting threads to manage connection
         outbound.start()
         time.sleep(0.05)
