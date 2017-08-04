@@ -66,15 +66,18 @@ class GUI_MainPg:
         self.textField.config(state=DISABLED)
 
     def updateRooms(self, string):
-        self.roomName.config(state=NORMAL)      
-        self.roomName.delete(0, END)
+        self.roomName.config(state=NORMAL)
+
+        self.online.insert(END, "test")
+        self.roomName.delete('1.0',END)
         for line in string:
             self.roomName.insert(END, line)
         self.roomName.config(state=DISABLED)
 
     def updateOnline(self, string):
         self.online.config(state=NORMAL)
-        self.online.delete(0, END)
+        self.online.insert(END, "test")
+        self.online.delete('1.0',END)
         for line in string:
             self.online.insert(END, line)
         self.online.config(state=DISABLED)
@@ -115,3 +118,6 @@ class login:
 
     def on_closing(self):
         self.root.destroy()
+
+
+
