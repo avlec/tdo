@@ -1,4 +1,6 @@
+import random
 import socket
+import string
 import sys
 import threading
 import CommonUtil
@@ -236,6 +238,9 @@ class Server:
                                     if u in ch.admin:
                                         self.general.users.extend(ch.users)
                                         self.Channels.remove(ch)
+                                        m = Message(0000000000000000, 0000000000000000, 'server', 'channel ' + regex.group(1)+ ' deleted')
+                                        for u in ch.users:
+                                            self.Outbound[u.inport].Push(m)
                                         com = '/removeChannel '+regex.group(1)
                                         m = Message(0000000000000000, 0000000000000000, 'server', com)
                                         self.SendCommand(m)
@@ -260,11 +265,11 @@ class Server:
                                 ch = Channel.getChannelWithUser(self.Channels, msg.messageSenderId)
                                 if ch:
                                     if admin in ch.admin:
-                                        print 'admin'
                                         if u:
                                             if u not in ch.blockedUsers:
                                                 ch.blockedUsers.append(u)
-                                                Channel.moveUser(self.Channels, self.general, regex.group(1))
+                                                Channel.moveUser(self.Channels, self.general, u.id)
+                                                print 'llllllll'
                                             else:
                                                 errMsg = Message(0000000000000000, 0000000000000000, 'server', 'user is already blocked')
                                                 self.Outbound[admin.inport].Push(errMsg)
@@ -330,18 +335,21 @@ if __name__ == '__main__':
         print('Got a connection from %s' % str(addr))
         p1 = server.handler.port.pop()
         p2 = server.handler.port.pop()
-
+        server.Outbound[p1] = CommonUtil.Queue()
+        server.Outbound[p1].Push(welcome_message())
         alias = clientsocket.recv(1024)
-        newUser = User.newUser(alias, p1, p2)
-        if not Channel.getUserAliasChannel(server.Channels, alias):
-            server.general.users.append(newUser)
-        else:
+        if Channel.getUserAliasChannel(server.Channels, alias):
             print('duplicate user')
+            alias = 'bob'+''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(5))
+            m = Message(0000000000000000, 0000000000000000, 'server', 'alias was taken, you have received '+ alias+' instead, to change use /set_alias')
+            server.Outbound[p1].Push(m)
+        newUser = User.newUser(alias, p1, p2)
+        server.general.users.append(newUser)
         # sending the client the information on ports used
         k = str(p1)+'|'+str(p2)+'|'+newUser.id
         clientsocket.send(k.encode('utf8'))
-        server.Outbound[p1] = CommonUtil.Queue()
-        server.Outbound[p1].Push(welcome_message())
+
+
         for ch in server.Channels:
             com = '/addChannel '+ch.name
             m = Message(0000000000000000, 0000000000000000, 'server', com)
