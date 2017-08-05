@@ -6,26 +6,34 @@ import functools
 import time
 import re
 from messages.Message import Message as Message
+from database.databaseinterface import databaseinterface
+
+# Globals
+db = databaseinterface()
+
 def welcome_message():
     msg = Message('0000000000000000', '0000000000000000', 'server', 'welcome to TDO communication services')
     return msg
-
 
 
 class User:
     def __init__(self, alias, userID, inport,outport):
         self.alias = alias
         self.id = userID
+        self.password = None
         self.inport = inport
         self.outport = outport
         self.channels = []
+        db.new_user(self)
 
     @staticmethod
     def newUser(alias, inport, outport):
-        if not alias:#check db if user exists
-            pass
-        else:
+        user = db.get_user_from_alias(alias)
+        print user
+        if user is None:
             return User(alias, CommonUtil.createID(), inport, outport)
+        else:
+            return User(user[0], user[1], inport, outport)
 
     @staticmethod
     def getUser(users, userID):
@@ -37,15 +45,19 @@ class User:
 
 class Channel:
     def __init__(self, name, permissions, channelID = None):
-        self.name = name
-        self.admin = []
-        self.blockedUsers = []
-        self.users = []
-        if channelID:
-            self.id = channelID
-        else:
+        ch = db.get_channel_from_name(name)
+        if ch is None:
             self.id = CommonUtil.createID()
-        self.permisions = permissions
+            self.name = name
+            self.blockedUsers = []
+        else:
+            (self.id,
+             self.name,
+             self.permissions,
+             self.blockedUsers) = ch
+        self.admin = []
+        self.users = []
+        self.permissions = permissions
 
     @staticmethod
     def getUser(channels,userid):
@@ -92,6 +104,8 @@ class Channel:
     def removeChannel(channels, channelID):
         ch = Channel.getChannel(channels, channelID)
         channels.remove(ch)
+        # Delete channel from DB
+        db.delete_channel(ch)
 
     @staticmethod
     def moveUser(channels, channel, userid):
@@ -243,7 +257,6 @@ class Server:
 
 
 if __name__ == '__main__':
-
     server = Server()
     dequeue = threading.Thread(target=server.dequeue, args=())
     dequeue.start()
