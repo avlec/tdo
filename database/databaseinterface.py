@@ -18,6 +18,7 @@ class databaseinterface:
         :param user: User object
         :return: None
         """
+        print user.id, user.alias, user.password
         try:
             self.dbmanager.create_user((user.id, user.alias, user.password))
         except psycopg2.IntegrityError:
