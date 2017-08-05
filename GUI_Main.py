@@ -67,12 +67,21 @@ class GUI_MainPg:
 
     def updateRooms(self, string):
         self.roomName.config(state=NORMAL)
-        self.roomName.insert(END, string)
+
+
+        self.roomName.delete('1.0',END)
+        for line in string:
+            self.roomName.insert(END, line)
+            self.roomName.insert(END, "\n")
         self.roomName.config(state=DISABLED)
 
     def updateOnline(self, string):
         self.online.config(state=NORMAL)
-        self.online.insert(END, string)
+
+        self.online.delete('1.0',END)
+        for line in string:
+            self.online.insert(END, line)
+            self.online.insert(END, "\n")
         self.online.config(state=DISABLED)
     def on_closing(self):
         self.root.destroy()

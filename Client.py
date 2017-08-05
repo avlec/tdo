@@ -24,7 +24,7 @@ class Client:
         self.activeChannels = []
         self.gui = None
         client = threading.Thread(target=self.chat_client, args=(),)
-        client.daemon = False
+        client.daemon = True
         client.start()
 
     # starting the gui for the chat
@@ -76,9 +76,10 @@ class Client:
                             self.gui.updateRooms(self.activeChannels)
                         if command == 'loginfailed':
                             pass
+                        if command == 'changealias':
+                            self.alias= regex.group(0)
 
             else:
-                #print(msg.senderAlias + ':' + msg.message)
                 self.gui.updateChat(msg.senderAlias + ':' + msg.message + '\n', 'black', msg.messageId)
 
 
@@ -97,11 +98,16 @@ if __name__ == '__main__':
     p2 = ports.pop()
 
     print('my port is ' + p1 + '' and '' + p2)
-    outbound = threading.Thread(target=CommonUtil.outbound_connection_handler, args=(int(p1), C.get_input),)
-    inbound = threading.Thread(target=CommonUtil.inbound_connection_handler, args=(int(p2), C.print_message),)
+    event = threading.Event()
+    event.is_set = False
+    outbound = threading.Thread(target=CommonUtil.outbound_connection_handler, args=(int(p1), event, C.get_input),)
+    inbound = threading.Thread(target=CommonUtil.inbound_connection_handler, args=(int(p2), event, C.print_message),)
     outbound.daemon = True
     inbound.daemon = True
     outbound.start()
     time.sleep(0.05)
     inbound.start()
-
+    while not event.is_set:
+        pass
+    print 'connection to server lost'
+    sys.exit(0)
